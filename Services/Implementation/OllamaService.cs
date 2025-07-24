@@ -14,14 +14,12 @@ namespace OllamaAssistant.Services.Implementation
     /// <summary>
     /// Implementation of IOllamaService for communicating with Ollama AI
     /// </summary>
-    public class OllamaService : IOllamaService, IDisposable
+    public class OllamaService : IDisposable
     {
         private readonly ISettingsService _settingsService;
         private readonly ILogger _logger;
         private readonly ErrorHandler _errorHandler;
         private readonly SecurityValidator _securityValidator;
-        private readonly ISecureCommunicationService _secureCommunication;
-        private readonly IRateLimitingService _rateLimiting;
         private OllamaHttpClient _httpClient;
         private readonly object _lockObject = new object();
         private bool _disposed;
@@ -32,15 +30,11 @@ namespace OllamaAssistant.Services.Implementation
         public OllamaService(
             ISettingsService settingsService, 
             ILogger logger = null, 
-            ErrorHandler errorHandler = null,
-            ISecureCommunicationService secureCommunication = null,
-            IRateLimitingService rateLimiting = null)
+            ErrorHandler errorHandler = null)
         {
             _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
             _logger = logger;
             _errorHandler = errorHandler;
-            _secureCommunication = secureCommunication;
-            _rateLimiting = rateLimiting;
             _securityValidator = new SecurityValidator(_settingsService.MaxRequestSizeKB);
             
             InitializeHttpClient();
@@ -64,7 +58,7 @@ namespace OllamaAssistant.Services.Implementation
 
             return await _errorHandler?.ExecuteWithErrorHandlingAsync(async () =>
             {
-                await _logger?.LogDebugAsync($"Getting completion for prompt: {prompt?.Substring(0, Math.Min(50, prompt.Length ?? 0))}...", "OllamaService");
+                await _logger?.LogDebugAsync($"Getting completion for prompt: {prompt?.Substring(0, Math.Min(50, prompt.Length))}...", "OllamaService");
                 
                 var enhancedPrompt = BuildEnhancedPrompt(prompt, context, history);
                 var request = CreateCompletionRequest(enhancedPrompt, context);
@@ -151,176 +145,136 @@ namespace OllamaAssistant.Services.Implementation
                     return new CodeSuggestion { Text = "", Description = "Offline - AI suggestions unavailable" };
                 }
 
-                // Check rate limits
-                if (_rateLimiting != null)
+                try
                 {
-                    var rateLimitResult = await _rateLimiting.CheckRateLimitAsync(identifier, RateLimitType.CodeCompletion);
-                    if (!rateLimitResult.IsAllowed)
+                    // Security validation
+                    if (_settingsService.FilterSensitiveData)
                     {
-                        await _logger?.LogWarningAsync($"Rate limit exceeded for code suggestion. Retry after: {rateLimitResult.RetryAfter}", "OllamaService");
-                        return new CodeSuggestion { Text = "", Description = $"Rate limited - retry in {rateLimitResult.RetryAfter.TotalSeconds:F0} seconds" };
+                        var securityValidationResult = _securityValidator.ValidateCodeContext(codeContext);
+                        if (!securityValidationResult.IsValid)
+                        {
+                            await _logger?.LogWarningAsync($"Code context failed security validation: {securityValidationResult.ErrorMessage}", "OllamaService");
+                            return new CodeSuggestion();
+                        }
                     }
-                }
 
-                // Check usage quota
-                if (_rateLimiting != null)
-                {
-                    var quotaResult = await _rateLimiting.CheckUsageQuotaAsync(identifier, QuotaType.HourlyRequests);
-                    if (!quotaResult.IsAllowed)
+                    var prompt = BuildCodeCompletionPrompt(codeContext);
+                    var contextString = BuildContextString(codeContext);
+
+                    // Sanitize input if enabled
+                    if (_settingsService.FilterSensitiveData)
                     {
-                        await _logger?.LogWarningAsync($"Usage quota exceeded for code suggestion. Resets at: {quotaResult.ResetTime}", "OllamaService");
-                        return new CodeSuggestion { Text = "", Description = $"Quota exceeded - resets at {quotaResult.ResetTime:HH:mm}" };
+                        prompt = _securityValidator.SanitizeInput(prompt);
+                        contextString = _securityValidator.SanitizeInput(contextString);
                     }
-                }
 
-                // Check circuit breaker
-                if (_rateLimiting != null && !await _rateLimiting.CheckCircuitBreakerAsync(identifier))
-                {
-                    await _logger?.LogWarningAsync("Circuit breaker is open for code suggestions", "OllamaService");
-                    return new CodeSuggestion { Text = "", Description = "Service temporarily unavailable" };
-                }
+                    // Validate request size
+                    var fullRequest = prompt + contextString;
+                    if (!_securityValidator.IsRequestSizeValid(fullRequest))
+                    {
+                        await _logger?.LogWarningAsync("Request exceeds maximum size limit", "OllamaService");
+                        return new CodeSuggestion();
+                    }
 
-                // Check for suspicious activity
-                if (_rateLimiting != null && await _rateLimiting.IsSuspiciousActivityAsync(identifier))
-                {
-                    await _logger?.LogWarningAsync($"Blocking suspicious activity from {identifier}", "OllamaService");
-                    return new CodeSuggestion { Text = "", Description = "Access temporarily restricted" };
-                }
+                    var request = CreateCompletionRequest(prompt, contextString);
 
-            try
-            {
-                // Security validation
-                if (_settingsService.FilterSensitiveData)
-                {
-                    var validationResult = _securityValidator.ValidateCodeContext(codeContext);
+                    var response = await _httpClient.SendCompletionAsync(request, cancellationToken);
+
+                    // Validate AI response before processing
+                    var validationResult = ValidateAIResponse(response);
                     if (!validationResult.IsValid)
                     {
-                        await _logger?.LogWarningAsync($"Code context failed security validation: {validationResult.ErrorMessage}", "OllamaService");
-                        return new CodeSuggestion();
+                        await _logger?.LogWarningAsync($"AI response validation failed: {validationResult.ErrorMessage}", "OllamaService");
+
+                        // Try fallback suggestion if available
+                        var fallbackSuggestion = GenerateFallbackSuggestion(codeContext, validationResult.ErrorType);
+                        if (fallbackSuggestion != null)
+                        {
+                            await _logger?.LogDebugAsync("Using fallback suggestion due to invalid AI response", "OllamaService");
+                            return fallbackSuggestion;
+                        }
+
+                        return new CodeSuggestion { Text = "", Description = $"Invalid AI response: {validationResult.ErrorMessage}" };
                     }
-                }
 
-                var prompt = BuildCodeCompletionPrompt(codeContext);
-                var contextString = BuildContextString(codeContext);
-                
-                // Sanitize input if enabled
-                if (_settingsService.FilterSensitiveData)
-                {
-                    prompt = _securityValidator.SanitizeInput(prompt);
-                    contextString = _securityValidator.SanitizeInput(contextString);
-                }
-                
-                // Validate request size
-                var fullRequest = prompt + contextString;
-                if (!_securityValidator.IsRequestSizeValid(fullRequest))
-                {
-                    await _logger?.LogWarningAsync("Request exceeds maximum size limit", "OllamaService");
-                    return new CodeSuggestion();
-                }
+                    var suggestion = ParseCodeSuggestion(response.Response, codeContext);
 
-                var request = CreateCompletionRequest(prompt, contextString);
-
-                var response = await _httpClient.SendCompletionAsync(request, cancellationToken);
-                
-                // Validate AI response before processing
-                var validationResult = ValidateAIResponse(response);
-                if (!validationResult.IsValid)
-                {
-                    await _logger?.LogWarningAsync($"AI response validation failed: {validationResult.ErrorMessage}", "OllamaService");
-                    
-                    // Try fallback suggestion if available
-                    var fallbackSuggestion = GenerateFallbackSuggestion(codeContext, validationResult.ErrorType);
-                    if (fallbackSuggestion != null)
+                    // Additional validation of the parsed suggestion
+                    var suggestionValidationResult = ValidateCodeSuggestion(suggestion, codeContext);
+                    if (!suggestionValidationResult.IsValid)
                     {
-                        await _logger?.LogDebugAsync("Using fallback suggestion due to invalid AI response", "OllamaService");
-                        return fallbackSuggestion;
-                    }
-                    
-                    return new CodeSuggestion { Text = "", Description = $"Invalid AI response: {validationResult.ErrorMessage}" };
-                }
+                        await _logger?.LogWarningAsync($"Code suggestion validation failed: {suggestionValidationResult.ErrorMessage}", "OllamaService");
 
-                var suggestion = ParseCodeSuggestion(response.Response, codeContext);
-                
-                // Additional validation of the parsed suggestion
-                var suggestionValidationResult = ValidateCodeSuggestion(suggestion, codeContext);
-                if (!suggestionValidationResult.IsValid)
-                {
-                    await _logger?.LogWarningAsync($"Code suggestion validation failed: {suggestionValidationResult.ErrorMessage}", "OllamaService");
-                    
-                    // Try to fix the suggestion or provide fallback
-                    var correctedSuggestion = AttemptSuggestionCorrection(suggestion, codeContext, suggestionValidationResult);
-                    if (correctedSuggestion != null)
-                    {
-                        await _logger?.LogDebugAsync("Applied correction to invalid suggestion", "OllamaService");
-                        return correctedSuggestion;
-                    }
-                    
-                    var fallbackSuggestion = GenerateFallbackSuggestion(codeContext, suggestionValidationResult.ErrorType);
-                    if (fallbackSuggestion != null)
-                    {
-                        return fallbackSuggestion;
-                    }
-                    
-                    return new CodeSuggestion { Text = "", Description = $"Invalid suggestion: {suggestionValidationResult.ErrorMessage}" };
-                }
-                
-                // Validate the suggestion for security
-                if (_settingsService.FilterSensitiveData)
-                {
-                    var suggestionValidation = _securityValidator.ValidateSuggestion(suggestion);
-                    if (!suggestionValidation.IsValid)
-                    {
-                        await _logger?.LogWarningAsync($"AI suggestion failed security validation: {suggestionValidation.ErrorMessage}", "OllamaService");
-                        return new CodeSuggestion();
-                    }
-                }
+                        // Try to fix the suggestion or provide fallback
+                        var correctedSuggestion = AttemptSuggestionCorrection(suggestion, codeContext, suggestionValidationResult);
+                        if (correctedSuggestion != null)
+                        {
+                            await _logger?.LogDebugAsync("Applied correction to invalid suggestion", "OllamaService");
+                            return correctedSuggestion;
+                        }
 
-                success = true;
-                return suggestion;
-            }
-            catch (OllamaConnectionException ex) when (ex.Message.Contains("network unavailable"))
-            {
-                await _logger?.LogWarningAsync($"Network unavailable for code suggestion: {ex.Message}", "OllamaService");
-                await _connectionManager?.HandleServerUnavailableAsync("code suggestion - network unavailable");
-                return new CodeSuggestion { Text = "", Description = "Network unavailable - check internet connection" };
-            }
-            catch (OllamaConnectionException ex) when (ex.Message.Contains("server unavailable"))
-            {
-                await _logger?.LogWarningAsync($"Ollama server unavailable for code suggestion: {ex.Message}", "OllamaService");
-                await _connectionManager?.HandleServerUnavailableAsync("code suggestion - server unavailable");
-                return new CodeSuggestion { Text = "", Description = "Ollama server unavailable - verify server is running" };
-            }
-            catch (OllamaConnectionException ex)
-            {
-                await _logger?.LogWarningAsync($"Connection error getting code suggestion: {ex.Message}", "OllamaService");
-                await _connectionManager?.HandleServerUnavailableAsync("code suggestion");
-                return new CodeSuggestion { Text = "", Description = "Connection error - AI suggestions unavailable" };
-            }
-            catch (TaskCanceledException ex) when (cancellationToken.IsCancellationRequested)
-            {
-                await _logger?.LogDebugAsync("Code suggestion request cancelled by user", "OllamaService");
-                return new CodeSuggestion { Text = "", Description = "Request cancelled" };
+                        var fallbackSuggestion = GenerateFallbackSuggestion(codeContext, suggestionValidationResult.ErrorType);
+                        if (fallbackSuggestion != null)
+                        {
+                            return fallbackSuggestion;
+                        }
+
+                        return new CodeSuggestion { Text = "", Description = $"Invalid suggestion: {suggestionValidationResult.ErrorMessage}" };
+                    }
+
+                    // Validate the suggestion for security
+                    if (_settingsService.FilterSensitiveData)
+                    {
+                        var suggestionValidation = _securityValidator.ValidateSuggestion(suggestion);
+                        if (!suggestionValidation.IsValid)
+                        {
+                            await _logger?.LogWarningAsync($"AI suggestion failed security validation: {suggestionValidation.ErrorMessage}", "OllamaService");
+                            return new CodeSuggestion();
+                        }
+                    }
+
+                    success = true;
+                    return suggestion;
+                }
+                catch (OllamaConnectionException ex) when (ex.Message.Contains("network unavailable"))
+                {
+                    await _logger?.LogWarningAsync($"Network unavailable for code suggestion: {ex.Message}", "OllamaService");
+                    await _connectionManager?.HandleServerUnavailableAsync("code suggestion - network unavailable");
+                    return new CodeSuggestion { Text = "", Description = "Network unavailable - check internet connection" };
+                }
+                catch (OllamaConnectionException ex) when (ex.Message.Contains("server unavailable"))
+                {
+                    await _logger?.LogWarningAsync($"Ollama server unavailable for code suggestion: {ex.Message}", "OllamaService");
+                    await _connectionManager?.HandleServerUnavailableAsync("code suggestion - server unavailable");
+                    return new CodeSuggestion { Text = "", Description = "Ollama server unavailable - verify server is running" };
+                }
+                catch (OllamaConnectionException ex)
+                {
+                    await _logger?.LogWarningAsync($"Connection error getting code suggestion: {ex.Message}", "OllamaService");
+                    await _connectionManager?.HandleServerUnavailableAsync("code suggestion");
+                    return new CodeSuggestion { Text = "", Description = "Connection error - AI suggestions unavailable" };
+                }
+                catch (TaskCanceledException ex) when (cancellationToken.IsCancellationRequested)
+                {
+                    await _logger?.LogDebugAsync("Code suggestion request cancelled by user", "OllamaService");
+                    return new CodeSuggestion { Text = "", Description = "Request cancelled" };
+                }
+                catch (Exception ex)
+                {
+                    await _logger?.LogErrorAsync(ex, "Unexpected error getting code suggestion", "OllamaService");
+                    return new CodeSuggestion { Text = "", Description = "Error - AI suggestions temporarily unavailable" };
+                }
+                finally
+                {
+                    var elapsed = DateTime.UtcNow - requestStart;
+                    await _logger?.LogDebugAsync($"Code suggestion request completed in {elapsed.TotalMilliseconds} ms (Success: {success})", "OllamaService");
+                }
             }
             catch (Exception ex)
             {
-                await _logger?.LogErrorAsync(ex, "Unexpected error getting code suggestion", "OllamaService");
+                await _logger?.LogErrorAsync(ex, "Unexpected error in GetCodeSuggestionAsync", "OllamaService");
                 return new CodeSuggestion { Text = "", Description = "Error - AI suggestions temporarily unavailable" };
-            }
-            finally
-            {
-                // Record request metrics
-                if (_rateLimiting != null)
-                {
-                    var duration = DateTime.UtcNow - requestStart;
-                    await _rateLimiting.RecordRequestAsync(identifier, RateLimitType.CodeCompletion, success, duration);
-                    
-                    if (success)
-                    {
-                        await _rateLimiting.RecordUsageAsync(identifier, QuotaType.HourlyRequests);
-                        await _rateLimiting.RecordUsageAsync(identifier, QuotaType.DailyRequests);
-                    }
-                }
-            }
+            }   
         }
 
         public async Task<JumpRecommendation> GetJumpRecommendationAsync(CodeContext codeContext, CancellationToken cancellationToken)
@@ -351,7 +305,7 @@ namespace OllamaAssistant.Services.Implementation
         /// <summary>
         /// Gets a streaming completion from Ollama
         /// </summary>
-        public async IAsyncEnumerable<string> GetStreamingCompletionAsync(
+        public IEnumerable<string> GetStreamingCompletionAsync(
             string prompt, 
             string context, 
             List<CursorHistoryEntry> history, 
@@ -364,8 +318,8 @@ namespace OllamaAssistant.Services.Implementation
             var request = CreateCompletionRequest(enhancedPrompt, context);
             request.Stream = true;
 
-            var streamingResponses = await _httpClient.SendStreamingCompletionAsync(request, cancellationToken);
-            foreach (var response in streamingResponses)
+            var streamingResponses = _httpClient.SendStreamingCompletionAsync(request, cancellationToken);
+            foreach (var response in streamingResponses.Result)
             {
                 if (!string.IsNullOrEmpty(response.Response))
                 {
@@ -394,7 +348,7 @@ namespace OllamaAssistant.Services.Implementation
 
             var accumulatedResponse = new StringBuilder();
 
-            foreach (var response in _httpClient.SendStreamingCompletionAsync(request, cancellationToken))
+            foreach (var response in _httpClient.SendStreamingCompletionAsync(request, cancellationToken).Result)
             {
                 if (!string.IsNullOrEmpty(response.Response))
                 {
@@ -1203,7 +1157,7 @@ namespace OllamaAssistant.Services.Implementation
                     RetryBackoffMultiplier = 2.0
                 };
                 
-                _httpClient = new OllamaHttpClient(_settingsService.OllamaEndpoint, config, _secureCommunication);
+                _httpClient = new OllamaHttpClient(_settingsService.OllamaEndpoint, config);
             }
         }
 
