@@ -305,41 +305,45 @@ namespace OllamaAssistant.Services.Implementation
         /// <summary>
         /// Gets a streaming completion from Ollama
         /// </summary>
-        public IEnumerable<string> GetStreamingCompletionAsync(
+        public async Task<List<string>> GetStreamingCompletionAsync(
             string prompt, 
             string context, 
             List<CursorHistoryEntry> history, 
-            [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(prompt))
-                yield break;
+                return new List<string>();
 
             var enhancedPrompt = BuildEnhancedPrompt(prompt, context, history);
             var request = CreateCompletionRequest(enhancedPrompt, context);
             request.Stream = true;
 
-            var streamingResponses = _httpClient.SendStreamingCompletionAsync(request, cancellationToken);
-            foreach (var response in streamingResponses.Result)
+            var streamingResponses = await _httpClient.SendStreamingCompletionAsync(request, cancellationToken);
+            var results = new List<string>();
+
+            foreach (var response in streamingResponses)
             {
                 if (!string.IsNullOrEmpty(response.Response))
                 {
-                    yield return response.Response;
+                    results.Add(response.Response);
                 }
 
                 if (response.Done)
                     break;
             }
+
+            return results;
         }
 
         /// <summary>
         /// Gets a streaming code suggestion from Ollama
         /// </summary>
-        public async IEnumerable<CodeSuggestion> GetStreamingCodeSuggestionAsync(
+        public async Task<List<CodeSuggestion>> GetStreamingCodeSuggestionAsync(
             CodeContext codeContext, 
-            [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default)
         {
             if (codeContext == null)
-                yield break;
+                return new List<CodeSuggestion>();
 
             var prompt = BuildCodeCompletionPrompt(codeContext);
             var contextString = BuildContextString(codeContext);
@@ -347,8 +351,9 @@ namespace OllamaAssistant.Services.Implementation
             request.Stream = true;
 
             var accumulatedResponse = new StringBuilder();
+            var results = new List<CodeSuggestion>();
 
-            foreach (var response in _httpClient.SendStreamingCompletionAsync(request, cancellationToken).Result)
+            foreach (var response in await _httpClient.SendStreamingCompletionAsync(request, cancellationToken))
             {
                 if (!string.IsNullOrEmpty(response.Response))
                 {
@@ -358,12 +363,14 @@ namespace OllamaAssistant.Services.Implementation
                     var partialSuggestion = ParseCodeSuggestion(accumulatedResponse.ToString(), codeContext);
                     partialSuggestion.IsPartial = !response.Done;
                     
-                    yield return partialSuggestion;
+                    results.Add(partialSuggestion);
                 }
 
                 if (response.Done)
                     break;
             }
+
+            return results;
         }
 
         public async Task<bool> IsAvailableAsync()
