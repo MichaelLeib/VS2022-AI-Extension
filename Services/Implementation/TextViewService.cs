@@ -412,7 +412,7 @@ namespace OllamaAssistant.Services.Implementation
             }
         }
 
-        public Models.CursorPosition GetCurrentPosition()
+        public CursorPosition GetCurrentPosition()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -545,7 +545,7 @@ namespace OllamaAssistant.Services.Implementation
 
                 try
                 {
-                    _customCaretPositionChanged?.Invoke(this, new CaretPositionChangedEventArgs
+                    _customCaretPositionChanged?.Invoke(this, new OllamaAssistant.Models.Events.CaretPositionChangedEventArgs
                     {
                         OldPosition = e.OldPosition.BufferPosition,
                         NewPosition = e.NewPosition.BufferPosition,
