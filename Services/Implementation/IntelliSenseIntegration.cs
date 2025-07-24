@@ -440,6 +440,53 @@ namespace OllamaAssistant.Services.Implementation
             }
         }
 
+        private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
+        {
+            try
+            {
+                // Dismiss if caret moves significantly
+                var oldPos = e.OldPosition.BufferPosition.Position;
+                var newPos = e.NewPosition.BufferPosition.Position;
+
+                if (Math.Abs(newPos - oldPos) > 5)
+                {
+                    Dismiss(DismissalReason.NavigatedAway);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in OnCaretPositionChanged: {ex.Message}");
+            }
+        }
+
+        private void OnTextBufferChanged(object sender, TextContentChangedEventArgs e)
+        {
+            try
+            {
+                // Dismiss on significant text changes
+                if (e.Changes.Any(c => c.Delta > 1 || c.Delta < -1))
+                {
+                    Dismiss(DismissalReason.ContinuedTyping);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in OnTextBufferChanged: {ex.Message}");
+            }
+        }
+
+        private void OnLostFocus(object sender, EventArgs e)
+        {
+            try
+            {
+                Dismiss(DismissalReason.NavigatedAway);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in OnLostFocus: {ex.Message}");
+            }
+        }
+
         #endregion
 
         #region IDisposable
