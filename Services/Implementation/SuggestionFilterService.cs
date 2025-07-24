@@ -144,15 +144,24 @@ namespace OllamaAssistant.Services.Implementation
             if (suggestions == null || context == null)
                 return suggestions ?? Array.Empty<CodeSuggestion>();
 
-            return context.Language?.ToLowerInvariant() switch
+            var language = context.Language?.ToLowerInvariant();
+            switch (language)
             {
-                "csharp" => ApplyCSharpFilters(suggestions, context),
-                "javascript" or "typescript" => ApplyJavaScriptFilters(suggestions, context),
-                "python" => ApplyPythonFilters(suggestions, context),
-                "java" => ApplyJavaFilters(suggestions, context),
-                "cpp" or "c" => ApplyCppFilters(suggestions, context),
-                _ => suggestions
-            };
+                case "csharp":
+                    return ApplyCSharpFilters(suggestions, context);
+                case "javascript":
+                case "typescript":
+                    return ApplyJavaScriptFilters(suggestions, context);
+                case "python":
+                    return ApplyPythonFilters(suggestions, context);
+                case "java":
+                    return ApplyJavaFilters(suggestions, context);
+                case "cpp":
+                case "c":
+                    return ApplyCppFilters(suggestions, context);
+                default:
+                    return suggestions;
+            }
         }
 
         #endregion
@@ -484,13 +493,21 @@ namespace OllamaAssistant.Services.Implementation
             }
             
             // Adjust based on suggestion type
-            base_probability += suggestion.Type switch
+            switch (suggestion.Type)
             {
-                SuggestionType.Method => 0.1,
-                SuggestionType.Variable => 0.05,
-                SuggestionType.Comment => -0.05,
-                _ => 0.0
-            };
+                case SuggestionType.Method:
+                    base_probability += 0.1;
+                    break;
+                case SuggestionType.Variable:
+                    base_probability += 0.05;
+                    break;
+                case SuggestionType.Comment:
+                    base_probability -= 0.05;
+                    break;
+                default:
+                    base_probability += 0.0;
+                    break;
+            }
             
             return Math.Max(0.0, Math.Min(1.0, base_probability));
         }

@@ -364,7 +364,8 @@ namespace OllamaAssistant.Services.Implementation
             var request = CreateCompletionRequest(enhancedPrompt, context);
             request.Stream = true;
 
-            await foreach (var response in _httpClient.SendStreamingCompletionAsync(request, cancellationToken))
+            var streamingResponses = await _httpClient.SendStreamingCompletionAsync(request, cancellationToken);
+            foreach (var response in streamingResponses)
             {
                 if (!string.IsNullOrEmpty(response.Response))
                 {
@@ -964,14 +965,20 @@ namespace OllamaAssistant.Services.Implementation
 
         private string[] GetLanguageKeywords(string language)
         {
-            return language switch
+            switch (language)
             {
-                "csharp" => new[] { "class", "interface", "public", "private", "void", "string", "int", "bool", "var", "new", "return", "if", "else", "for", "while", "foreach" },
-                "javascript" => new[] { "function", "var", "let", "const", "return", "if", "else", "for", "while", "class", "new", "this", "async", "await" },
-                "python" => new[] { "def", "class", "return", "if", "else", "elif", "for", "while", "import", "from", "as", "with", "try", "except" },
-                "cpp" or "c" => new[] { "class", "struct", "public", "private", "void", "int", "char", "bool", "return", "if", "else", "for", "while", "include" },
-                _ => new string[0]
-            };
+                case "csharp":
+                    return new[] { "class", "interface", "public", "private", "void", "string", "int", "bool", "var", "new", "return", "if", "else", "for", "while", "foreach" };
+                case "javascript":
+                    return new[] { "function", "var", "let", "const", "return", "if", "else", "for", "while", "class", "new", "this", "async", "await" };
+                case "python":
+                    return new[] { "def", "class", "return", "if", "else", "elif", "for", "while", "import", "from", "as", "with", "try", "except" };
+                case "cpp":
+                case "c":
+                    return new[] { "class", "struct", "public", "private", "void", "int", "char", "bool", "return", "if", "else", "for", "while", "include" };
+                default:
+                    return new string[0];
+            }
         }
 
         /// <summary>
@@ -1612,28 +1619,43 @@ namespace OllamaAssistant.Services.Implementation
 
         private double GetLanguageSpecificBonus(string suggestion, string language)
         {
-            return language.ToLowerInvariant() switch
+            var languageLower = language.ToLowerInvariant();
+            switch (languageLower)
             {
-                "csharp" when suggestion.Contains("async ") || suggestion.Contains("await ") => 0.05,
-                "csharp" when suggestion.Contains("?.") || suggestion.Contains("??") => 0.03,
-                "javascript" when suggestion.Contains("=>") || suggestion.Contains("async") => 0.05,
-                "python" when suggestion.Contains("with ") || suggestion.Contains("lambda") => 0.05,
-                "cpp" when suggestion.Contains("::") || suggestion.Contains("auto") => 0.05,
-                _ => 0.0
-            };
+                case "csharp":
+                    if (suggestion.Contains("async ") || suggestion.Contains("await "))
+                        return 0.05;
+                    if (suggestion.Contains("?.") || suggestion.Contains("??"))
+                        return 0.03;
+                    break;
+                case "javascript":
+                    if (suggestion.Contains("=>") || suggestion.Contains("async"))
+                        return 0.05;
+                    break;
+                case "python":
+                    if (suggestion.Contains("with ") || suggestion.Contains("lambda"))
+                        return 0.05;
+                    break;
+                case "cpp":
+                    if (suggestion.Contains("::") || suggestion.Contains("auto"))
+                        return 0.05;
+                    break;
+            }
+            return 0.0;
         }
 
         private double CalculateLengthScore(string suggestion)
         {
             var length = suggestion.Trim().Length;
-            return length switch
-            {
-                >= 1 and <= 10 => 0.05,      // Very short, likely incomplete
-                >= 11 and <= 50 => 0.1,      // Good length for most completions
-                >= 51 and <= 150 => 0.08,    // Reasonable length
-                >= 151 and <= 300 => 0.05,   // Getting long
-                _ => 0.0                      // Too short or too long
-            };
+            if (length >= 1 && length <= 10)
+                return 0.05;      // Very short, likely incomplete
+            if (length >= 11 && length <= 50)
+                return 0.1;       // Good length for most completions
+            if (length >= 51 && length <= 150)
+                return 0.08;      // Reasonable length
+            if (length >= 151 && length <= 300)
+                return 0.05;      // Getting long
+            return 0.0;           // Too short or too long
         }
 
         private double CalculateSyntaxScore(string suggestion, string language)

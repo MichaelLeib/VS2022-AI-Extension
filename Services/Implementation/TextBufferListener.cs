@@ -202,12 +202,4 @@ namespace OllamaAssistant.Services.Implementation
         }
     }
 
-    /// <summary>
-    /// Interface for text buffer listeners (not part of standard VS SDK)
-    /// </summary>
-    public interface ITextBufferListener
-    {
-        void TextBufferCreated(ITextBuffer textBuffer);
-        void TextBufferDisposed(ITextBuffer textBuffer);
-    }
 }

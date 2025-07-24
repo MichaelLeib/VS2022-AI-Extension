@@ -338,15 +338,21 @@ namespace OllamaAssistant.Services.Implementation
         /// </summary>
         private ErrorType ClassifyException(Exception exception)
         {
-            return exception switch
+            switch (exception)
             {
-                System.Net.Http.HttpRequestException => ErrorType.ConnectionFailed,
-                TimeoutException => ErrorType.Timeout,
-                UnauthorizedAccessException => ErrorType.AuthenticationFailed,
-                ArgumentException => ErrorType.ConfigurationError,
-                InvalidOperationException => ErrorType.InvalidState,
-                _ => ErrorType.General
-            };
+                case System.Net.Http.HttpRequestException _:
+                    return ErrorType.ConnectionFailed;
+                case TimeoutException _:
+                    return ErrorType.Timeout;
+                case UnauthorizedAccessException _:
+                    return ErrorType.AuthenticationFailed;
+                case ArgumentException _:
+                    return ErrorType.ConfigurationError;
+                case InvalidOperationException _:
+                    return ErrorType.InvalidState;
+                default:
+                    return ErrorType.General;
+            }
         }
 
         /// <summary>
@@ -416,16 +422,23 @@ namespace OllamaAssistant.Services.Implementation
         /// </summary>
         private string GetErrorTypeDisplayName(ErrorType errorType)
         {
-            return errorType switch
+            switch (errorType)
             {
-                ErrorType.ConnectionFailed => "Connection Error",
-                ErrorType.AIResponseFailed => "AI Response Error",
-                ErrorType.ConfigurationError => "Configuration Error",
-                ErrorType.AuthenticationFailed => "Authentication Error",
-                ErrorType.Timeout => "Timeout Error",
-                ErrorType.InvalidState => "Invalid State Error",
-                _ => "Error"
-            };
+                case ErrorType.ConnectionFailed:
+                    return "Connection Error";
+                case ErrorType.AIResponseFailed:
+                    return "AI Response Error";
+                case ErrorType.ConfigurationError:
+                    return "Configuration Error";
+                case ErrorType.AuthenticationFailed:
+                    return "Authentication Error";
+                case ErrorType.Timeout:
+                    return "Timeout Error";
+                case ErrorType.InvalidState:
+                    return "Invalid State Error";
+                default:
+                    return "Error";
+            }
         }
 
         /// <summary>
@@ -433,14 +446,19 @@ namespace OllamaAssistant.Services.Implementation
         /// </summary>
         private OLEMSGICON GetIconForSeverity(ErrorSeverity severity)
         {
-            return severity switch
+            switch (severity)
             {
-                ErrorSeverity.Critical => OLEMSGICON.OLEMSGICON_CRITICAL,
-                ErrorSeverity.Error => OLEMSGICON.OLEMSGICON_CRITICAL,
-                ErrorSeverity.Warning => OLEMSGICON.OLEMSGICON_WARNING,
-                ErrorSeverity.Info => OLEMSGICON.OLEMSGICON_INFO,
-                _ => OLEMSGICON.OLEMSGICON_CRITICAL
-            };
+                case ErrorSeverity.Critical:
+                    return OLEMSGICON.OLEMSGICON_CRITICAL;
+                case ErrorSeverity.Error:
+                    return OLEMSGICON.OLEMSGICON_CRITICAL;
+                case ErrorSeverity.Warning:
+                    return OLEMSGICON.OLEMSGICON_WARNING;
+                case ErrorSeverity.Info:
+                    return OLEMSGICON.OLEMSGICON_INFO;
+                default:
+                    return OLEMSGICON.OLEMSGICON_CRITICAL;
+            }
         }
 
         /// <summary>
@@ -477,19 +495,21 @@ namespace OllamaAssistant.Services.Implementation
             try
             {
                 // Perform actual server connectivity check
-                using var httpClient = new System.Net.Http.HttpClient();
-                httpClient.Timeout = TimeSpan.FromSeconds(5);
-                
-                var response = await httpClient.GetAsync($"{serverUrl}/api/version");
-                
-                if (response.IsSuccessStatusCode)
+                using (var httpClient = new System.Net.Http.HttpClient())
                 {
-                    await ShowInfoMessageAsync("Server Connection", "Server is reachable and responding.");
-                }
-                else
-                {
-                    await ShowWarningMessageAsync("Server Connection", 
-                        $"Server responded with status: {response.StatusCode}. Check server configuration.");
+                    httpClient.Timeout = TimeSpan.FromSeconds(5);
+                    
+                    var response = await httpClient.GetAsync($"{serverUrl}/api/version");
+                    
+                    if (response.IsSuccessStatusCode)
+                    {
+                        await ShowInfoMessageAsync("Server Connection", "Server is reachable and responding.");
+                    }
+                    else
+                    {
+                        await ShowWarningMessageAsync("Server Connection", 
+                            $"Server responded with status: {response.StatusCode}. Check server configuration.");
+                    }
                 }
             }
             catch (Exception ex)
@@ -507,25 +527,27 @@ namespace OllamaAssistant.Services.Implementation
                 var settingsService = ServiceProvider.GlobalProvider.GetService(typeof(ISettingsService)) as ISettingsService;
                 var serverUrl = settingsService?.OllamaEndpoint ?? "http://localhost:11434";
                 
-                using var httpClient = new System.Net.Http.HttpClient();
-                httpClient.Timeout = TimeSpan.FromSeconds(10);
-                
-                // Check server version and health
-                var versionResponse = await httpClient.GetAsync($"{serverUrl}/api/version");
-                var tagsResponse = await httpClient.GetAsync($"{serverUrl}/api/tags");
-                
-                if (versionResponse.IsSuccessStatusCode && tagsResponse.IsSuccessStatusCode)
+                using (var httpClient = new System.Net.Http.HttpClient())
                 {
-                    var versionContent = await versionResponse.Content.ReadAsStringAsync();
-                    var tagsContent = await tagsResponse.Content.ReadAsStringAsync();
+                    httpClient.Timeout = TimeSpan.FromSeconds(10);
                     
-                    await ShowInfoMessageAsync("Server Health Check", 
-                        $"Server is healthy.\nVersion info: {versionContent}\nAvailable models: {tagsContent}");
-                }
-                else
-                {
-                    await ShowWarningMessageAsync("Server Health Check", 
-                        "Server is responding but may have issues. Check server logs.");
+                    // Check server version and health
+                    var versionResponse = await httpClient.GetAsync($"{serverUrl}/api/version");
+                    var tagsResponse = await httpClient.GetAsync($"{serverUrl}/api/tags");
+                    
+                    if (versionResponse.IsSuccessStatusCode && tagsResponse.IsSuccessStatusCode)
+                    {
+                        var versionContent = await versionResponse.Content.ReadAsStringAsync();
+                        var tagsContent = await tagsResponse.Content.ReadAsStringAsync();
+                        
+                        await ShowInfoMessageAsync("Server Health Check", 
+                            $"Server is healthy.\nVersion info: {versionContent}\nAvailable models: {tagsContent}");
+                    }
+                    else
+                    {
+                        await ShowWarningMessageAsync("Server Health Check", 
+                            "Server is responding but may have issues. Check server logs.");
+                    }
                 }
             }
             catch (Exception ex)

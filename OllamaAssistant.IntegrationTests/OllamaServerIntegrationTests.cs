@@ -243,7 +243,8 @@ namespace OllamaAssistant.IntegrationTests
             var responses = new System.Collections.Generic.List<OllamaStreamResponse>();
             var streamStartTime = DateTime.UtcNow;
             
-            await foreach (var streamResponse in _ollamaClient.SendStreamingCompletionAsync(request, CancellationToken))
+            var streamingResponses = await _ollamaClient.SendStreamingCompletionAsync(request, CancellationToken);
+            foreach (var streamResponse in streamingResponses)
             {
                 responses.Add(streamResponse);
                 

@@ -9,12 +9,12 @@ namespace OllamaAssistant.Services.Interfaces
     public interface ISuggestionEngine
     {
         /// <summary>
-        /// Processes a raw AI response into a structured code suggestion
+        /// Processes a raw AI response into structured code suggestions
         /// </summary>
-        /// <param name="aiResponse">The raw response from the AI model</param>
+        /// <param name="suggestion">The code suggestion to process</param>
         /// <param name="context">The code context that prompted the suggestion</param>
-        /// <returns>A processed and validated code suggestion</returns>
-        Task<CodeSuggestion> ProcessSuggestionAsync(string aiResponse, CodeContext context);
+        /// <returns>A list of processed and validated code suggestions</returns>
+        Task<List<CodeSuggestion>> ProcessSuggestionAsync(CodeSuggestion suggestion, CodeContext context);
 
         /// <summary>
         /// Determines whether a suggestion should be shown to the user
@@ -72,5 +72,12 @@ namespace OllamaAssistant.Services.Interfaces
         /// </summary>
         /// <param name="threshold">The threshold value (0.0 to 1.0)</param>
         void SetMinimumConfidenceThreshold(double threshold);
+
+        /// <summary>
+        /// Analyzes the code context to identify jump opportunities
+        /// </summary>
+        /// <param name="context">The current code context</param>
+        /// <returns>A list of jump recommendations</returns>
+        Task<List<JumpRecommendation>> AnalyzeJumpOpportunitiesAsync(CodeContext context);
     }
 }

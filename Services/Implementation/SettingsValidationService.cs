@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using OllamaAssistant.Infrastructure;
 using OllamaAssistant.Services.Interfaces;
+using ValidationResult = OllamaAssistant.Infrastructure.ValidationResult;
 
 namespace OllamaAssistant.Services.Implementation
 {

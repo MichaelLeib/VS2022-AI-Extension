@@ -50,12 +50,12 @@ namespace OllamaAssistant.Infrastructure
         /// <summary>
         /// Validates that a code context is safe to send to AI
         /// </summary>
-        public ValidationResult ValidateCodeContext(CodeContext context)
+        public SecurityValidationResult ValidateCodeContext(CodeContext context)
         {
             if (context == null)
-                return ValidationResult.Invalid("Context cannot be null");
+                return SecurityValidationResult.Invalid("Context cannot be null");
 
-            var result = new ValidationResult { IsValid = true };
+            var result = new SecurityValidationResult { IsValid = true };
             var issues = new List<string>();
 
             try
@@ -114,7 +114,7 @@ namespace OllamaAssistant.Infrastructure
             }
             catch (Exception ex)
             {
-                return ValidationResult.Invalid($"Validation error: {ex.Message}");
+                return SecurityValidationResult.Invalid($"Validation error: {ex.Message}");
             }
         }
 
@@ -185,12 +185,12 @@ namespace OllamaAssistant.Infrastructure
         /// <summary>
         /// Validates that a suggestion doesn't contain dangerous content
         /// </summary>
-        public ValidationResult ValidateSuggestion(CodeSuggestion suggestion)
+        public SecurityValidationResult ValidateSuggestion(CodeSuggestion suggestion)
         {
             if (suggestion == null)
-                return ValidationResult.Invalid("Suggestion cannot be null");
+                return SecurityValidationResult.Invalid("Suggestion cannot be null");
 
-            var result = new ValidationResult { IsValid = true };
+            var result = new SecurityValidationResult { IsValid = true };
             var issues = new List<string>();
 
             try
@@ -228,7 +228,7 @@ namespace OllamaAssistant.Infrastructure
             }
             catch (Exception ex)
             {
-                return ValidationResult.Invalid($"Suggestion validation error: {ex.Message}");
+                return SecurityValidationResult.Invalid($"Suggestion validation error: {ex.Message}");
             }
         }
 
@@ -327,10 +327,10 @@ namespace OllamaAssistant.Infrastructure
         /// <summary>
         /// Validates settings values against acceptable ranges
         /// </summary>
-        public ValidationResult ValidateSettingsValue(string settingName, object value)
+        public SecurityValidationResult ValidateSettingsValue(string settingName, object value)
         {
             if (string.IsNullOrEmpty(settingName) || value == null)
-                return ValidationResult.Invalid("Setting name and value cannot be null");
+                return SecurityValidationResult.Invalid("Setting name and value cannot be null");
 
             try
             {
@@ -341,14 +341,14 @@ namespace OllamaAssistant.Infrastructure
                     {
                         if (intValue < range.min || intValue > range.max)
                         {
-                            return ValidationResult.Invalid($"{settingName} must be between {range.min} and {range.max}");
+                            return SecurityValidationResult.Invalid($"{settingName} must be between {range.min} and {range.max}");
                         }
                     }
                     else if (value is double doubleValue)
                     {
                         if (doubleValue < range.min || doubleValue > range.max)
                         {
-                            return ValidationResult.Invalid($"{settingName} must be between {range.min} and {range.max}");
+                            return SecurityValidationResult.Invalid($"{settingName} must be between {range.min} and {range.max}");
                         }
                     }
                 }
@@ -359,7 +359,7 @@ namespace OllamaAssistant.Infrastructure
                     // Check for script injection attempts
                     if (ContainsScriptInjection(stringValue))
                     {
-                        return ValidationResult.Invalid($"{settingName} contains potentially dangerous script content");
+                        return SecurityValidationResult.Invalid($"{settingName} contains potentially dangerous script content");
                     }
 
                     // Check for path traversal in path settings
@@ -369,7 +369,7 @@ namespace OllamaAssistant.Infrastructure
                     {
                         if (!IsFilePathSafe(stringValue))
                         {
-                            return ValidationResult.Invalid($"{settingName} contains unsafe path");
+                            return SecurityValidationResult.Invalid($"{settingName} contains unsafe path");
                         }
                     }
 
@@ -379,16 +379,16 @@ namespace OllamaAssistant.Infrastructure
                     {
                         if (!IsUrlSafe(stringValue))
                         {
-                            return ValidationResult.Invalid($"{settingName} contains unsafe URL");
+                            return SecurityValidationResult.Invalid($"{settingName} contains unsafe URL");
                         }
                     }
                 }
 
-                return ValidationResult.Valid();
+                return SecurityValidationResult.Valid();
             }
             catch (Exception ex)
             {
-                return ValidationResult.Invalid($"Settings validation error: {ex.Message}");
+                return SecurityValidationResult.Invalid($"Settings validation error: {ex.Message}");
             }
         }
 
@@ -405,10 +405,10 @@ namespace OllamaAssistant.Infrastructure
         /// <summary>
         /// Validates the total size of a code context before sending
         /// </summary>
-        public ValidationResult ValidateContextSize(CodeContext context)
+        public SecurityValidationResult ValidateContextSize(CodeContext context)
         {
             if (context == null)
-                return ValidationResult.Valid();
+                return SecurityValidationResult.Valid();
 
             try
             {
@@ -431,14 +431,14 @@ namespace OllamaAssistant.Infrastructure
                 {
                     var sizeInKB = totalSize / 1024.0;
                     var maxSizeInKB = _maxRequestSizeBytes / 1024.0;
-                    return ValidationResult.Invalid($"Context size ({sizeInKB:F1}KB) exceeds maximum allowed size ({maxSizeInKB}KB)");
+                    return SecurityValidationResult.Invalid($"Context size ({sizeInKB:F1}KB) exceeds maximum allowed size ({maxSizeInKB}KB)");
                 }
 
-                return ValidationResult.Valid();
+                return SecurityValidationResult.Valid();
             }
             catch (Exception ex)
             {
-                return ValidationResult.Invalid($"Context size validation error: {ex.Message}");
+                return SecurityValidationResult.Invalid($"Context size validation error: {ex.Message}");
             }
         }
 
@@ -718,25 +718,25 @@ namespace OllamaAssistant.Infrastructure
     /// <summary>
     /// Result of a security validation operation
     /// </summary>
-    public class ValidationResult
+    public class SecurityValidationResult
     {
         public bool IsValid { get; set; }
         public string ErrorMessage { get; set; }
         public List<string> SecurityIssues { get; set; }
 
-        public ValidationResult()
+        public SecurityValidationResult()
         {
             SecurityIssues = new List<string>();
         }
 
-        public static ValidationResult Valid()
+        public static SecurityValidationResult Valid()
         {
-            return new ValidationResult { IsValid = true };
+            return new SecurityValidationResult { IsValid = true };
         }
 
-        public static ValidationResult Invalid(string errorMessage)
+        public static SecurityValidationResult Invalid(string errorMessage)
         {
-            return new ValidationResult 
+            return new SecurityValidationResult 
             { 
                 IsValid = false, 
                 ErrorMessage = errorMessage,

@@ -122,14 +122,16 @@ namespace OllamaAssistant.Tests.UnitTests.Services
         public async Task GetCompletionAsync_WithCancellationToken_ShouldRespectCancellation()
         {
             // Arrange
-            using var cts = new CancellationTokenSource();
-            cts.Cancel(); // Cancel immediately
+            using (var cts = new CancellationTokenSource())
+            {
+                cts.Cancel(); // Cancel immediately
 
-            // Act
-            var result = await _service.GetCompletionAsync("test prompt", "context", new List<CursorHistoryEntry>(), cts.Token);
+                // Act
+                var result = await _service.GetCompletionAsync("test prompt", "context", new List<CursorHistoryEntry>(), cts.Token);
 
-            // Assert - Should complete gracefully even with cancelled token
-            result.Should().NotBeNull();
+                // Assert - Should complete gracefully even with cancelled token
+                result.Should().NotBeNull();
+            }
         }
 
         [TestMethod]

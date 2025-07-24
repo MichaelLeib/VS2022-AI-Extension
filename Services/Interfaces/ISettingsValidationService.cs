@@ -1,4 +1,5 @@
 using OllamaAssistant.Infrastructure;
+using ValidationResult = OllamaAssistant.Infrastructure.ValidationResult;
 
 namespace OllamaAssistant.Services.Interfaces
 {

@@ -124,16 +124,43 @@ namespace OllamaAssistant.Services.Interfaces
             get
             {
                 var ext = Extension?.ToLowerInvariant();
-                return ext switch
+                switch (ext)
                 {
-                    ".cs" or ".vb" or ".cpp" or ".c" or ".h" or ".hpp" or
-                    ".js" or ".ts" or ".py" or ".java" or ".php" or
-                    ".go" or ".rs" or ".kt" or ".swift" or ".rb" or
-                    ".fs" or ".fsx" or ".ml" or ".scala" or ".clj" or
-                    ".hs" or ".elm" or ".dart" or ".lua" or ".r" or
-                    ".sql" or ".xml" or ".json" or ".yaml" or ".yml" => true,
-                    _ => false
-                };
+                    case ".cs":
+                    case ".vb":
+                    case ".cpp":
+                    case ".c":
+                    case ".h":
+                    case ".hpp":
+                    case ".js":
+                    case ".ts":
+                    case ".py":
+                    case ".java":
+                    case ".php":
+                    case ".go":
+                    case ".rs":
+                    case ".kt":
+                    case ".swift":
+                    case ".rb":
+                    case ".fs":
+                    case ".fsx":
+                    case ".ml":
+                    case ".scala":
+                    case ".clj":
+                    case ".hs":
+                    case ".elm":
+                    case ".dart":
+                    case ".lua":
+                    case ".r":
+                    case ".sql":
+                    case ".xml":
+                    case ".json":
+                    case ".yaml":
+                    case ".yml":
+                        return true;
+                    default:
+                        return false;
+                }
             }
         }
     }

@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using OllamaAssistant.Infrastructure;
 using OllamaAssistant.Services.Interfaces;
+using ValidationResult = OllamaAssistant.Models.ValidationResult;
 
 namespace OllamaAssistant.Services.Implementation
 {
@@ -1116,12 +1117,4 @@ namespace OllamaAssistant.Services.Implementation
         public void Dispose() { }
     }
 
-    /// <summary>
-    /// Validation result
-    /// </summary>
-    public class ValidationResult
-    {
-        public bool IsValid { get; set; }
-        public string ErrorMessage { get; set; }
-    }
 }

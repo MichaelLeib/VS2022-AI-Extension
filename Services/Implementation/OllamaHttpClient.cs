@@ -2,17 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using OllamaAssistant.Services.Interfaces;
+using OllamaAssistant.Models;
 
 namespace OllamaAssistant.Services.Implementation
 {
     /// <summary>
     /// HTTP client for communicating with Ollama API with retry logic and connection pooling
     /// </summary>
-    public class OllamaHttpClient : IDisposable
+    public class OllamaHttpClient : IOllamaHttpClient, IDisposable
     {
         private readonly HttpClient _httpClient;
         private readonly SemaphoreSlim _connectionSemaphore;
@@ -390,7 +393,7 @@ namespace OllamaAssistant.Services.Implementation
                 var reader = new System.IO.StreamReader(stream);
 
                 string line;
-                List<OllamaStreamResponse> responses = new List<OllamaStreamResponse>();
+                var responses = new List<OllamaStreamResponse>();
                 while ((line = await reader.ReadLineAsync()) != null)
                 {
                     if (cancellationToken.IsCancellationRequested)
@@ -591,6 +594,121 @@ namespace OllamaAssistant.Services.Implementation
                 TotalDuration = totalDuration,
                 EvalCount = totalTokens
             };
+        }
+
+        #endregion
+
+        #region IOllamaHttpClient Interface Implementation
+
+        /// <summary>
+        /// Sends a POST request to the specified endpoint
+        /// </summary>
+        public async Task<OllamaResponse> PostAsync(string endpoint, object data, CancellationToken cancellationToken = default)
+        {
+            if (_disposed)
+                throw new ObjectDisposedException(nameof(OllamaHttpClient));
+
+            return await ExecuteWithRetryAsync(async () =>
+            {
+                await _connectionSemaphore.WaitAsync(cancellationToken);
+                try
+                {
+                    var json = JsonSerializer.Serialize(data, GetJsonOptions());
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                    var requestMessage = new HttpRequestMessage(HttpMethod.Post, endpoint)
+                    {
+                        Content = content
+                    };
+
+                    var response = await _httpClient.SendAsync(requestMessage, cancellationToken);
+                    response.EnsureSuccessStatusCode();
+
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<OllamaResponse>(responseContent, GetJsonOptions());
+                }
+                finally
+                {
+                    _connectionSemaphore.Release();
+                }
+            }, cancellationToken);
+        }
+
+        /// <summary>
+        /// Sends a GET request to the specified endpoint
+        /// </summary>
+        public async Task<T> GetAsync<T>(string endpoint, CancellationToken cancellationToken = default)
+        {
+            if (_disposed)
+                throw new ObjectDisposedException(nameof(OllamaHttpClient));
+
+            return await ExecuteWithRetryAsync(async () =>
+            {
+                await _connectionSemaphore.WaitAsync(cancellationToken);
+                try
+                {
+                    var requestMessage = new HttpRequestMessage(HttpMethod.Get, endpoint);
+                    var response = await _httpClient.SendAsync(requestMessage, cancellationToken);
+                    response.EnsureSuccessStatusCode();
+
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<T>(responseContent, GetJsonOptions());
+                }
+                finally
+                {
+                    _connectionSemaphore.Release();
+                }
+            }, cancellationToken);
+        }
+
+        /// <summary>
+        /// Tests connection to the Ollama server
+        /// </summary>
+        public async Task<bool> TestConnectionAsync(CancellationToken cancellationToken = default)
+        {
+            return await IsAvailableAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Gets health status of the Ollama server
+        /// </summary>
+        public async Task<HealthStatus> GetHealthStatusAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var ollamaHealthStatus = await CheckHealthAsync(cancellationToken);
+                return new HealthStatus
+                {
+                    IsHealthy = ollamaHealthStatus?.IsHealthy ?? false,
+                    StatusMessage = ollamaHealthStatus?.Message ?? "Unknown status",
+                    Timestamp = DateTime.UtcNow
+                };
+            }
+            catch (Exception ex)
+            {
+                return new HealthStatus
+                {
+                    IsHealthy = false,
+                    StatusMessage = $"Health check failed: {ex.Message}",
+                    Timestamp = DateTime.UtcNow
+                };
+            }
+        }
+
+        /// <summary>
+        /// Sets the base URL for the Ollama server
+        /// </summary>
+        public void SetBaseUrl(string baseUrl)
+        {
+            UpdateBaseUrl(baseUrl);
+        }
+
+        /// <summary>
+        /// Sets the request timeout in seconds
+        /// </summary>
+        public void SetTimeout(int timeoutSeconds)
+        {
+            UpdateTimeout(timeoutSeconds * 1000); // Convert seconds to milliseconds
         }
 
         #endregion

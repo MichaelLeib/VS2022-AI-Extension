@@ -396,11 +396,4 @@ namespace OllamaAssistant.IntegrationTests
         #endregion
     }
 
-    /// <summary>
-    /// Interface for text buffer listener testing
-    /// </summary>
-    public interface ITextBufferListener
-    {
-        void OnTextBufferCreated(object textBuffer);
-    }
 }

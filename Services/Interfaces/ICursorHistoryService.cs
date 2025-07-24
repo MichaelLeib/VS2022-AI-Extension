@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text;
 using OllamaAssistant.Models;
 
@@ -74,6 +75,33 @@ namespace OllamaAssistant.Services.Interfaces
         /// </summary>
         /// <param name="depth">The maximum depth</param>
         void SetMaxHistoryDepth(int depth);
+
+        /// <summary>
+        /// Asynchronously adds a cursor history entry
+        /// </summary>
+        /// <param name="entry">The history entry to add</param>
+        /// <returns>Task representing the async operation</returns>
+        Task AddEntryAsync(CursorHistoryEntry entry);
+
+        /// <summary>
+        /// Asynchronously clears all cursor history
+        /// </summary>
+        /// <returns>Task representing the async operation</returns>
+        Task ClearHistoryAsync();
+
+        /// <summary>
+        /// Asynchronously clears history for a specific file
+        /// </summary>
+        /// <param name="filePath">The file path to clear history for</param>
+        /// <returns>Task representing the async operation</returns>
+        Task ClearHistoryForFileAsync(string filePath);
+
+        /// <summary>
+        /// Asynchronously cleans up file-specific data
+        /// </summary>
+        /// <param name="filePath">The file path to clean up data for</param>
+        /// <returns>Task representing the async operation</returns>
+        Task CleanupFileDataAsync(string filePath);
     }
 
     /// <summary>

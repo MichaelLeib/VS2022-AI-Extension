@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using OllamaAssistant.Infrastructure;
 using OllamaAssistant.Models;
 using OllamaAssistant.Services.Interfaces;
+using ValidationResult = OllamaAssistant.Models.ValidationResult;
 
 namespace OllamaAssistant.Services.Implementation
 {
@@ -1213,12 +1214,4 @@ Refactoring suggestions:",
         Custom
     }
 
-    /// <summary>
-    /// Validation result
-    /// </summary>
-    public class ValidationResult
-    {
-        public bool IsValid { get; set; }
-        public string ErrorMessage { get; set; }
-    }
 }

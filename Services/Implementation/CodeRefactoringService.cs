@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using OllamaAssistant.Services.Interfaces;
 using OllamaAssistant.Models;
+using ValidationResult = OllamaAssistant.Models.ValidationResult;
 
 namespace OllamaAssistant.Services.Implementation
 {
@@ -19,19 +20,19 @@ namespace OllamaAssistant.Services.Implementation
     {
         private readonly IOllamaService _ollamaService;
         private readonly IAdvancedContextAnalysisService _contextAnalysisService;
-        private readonly ILoggingService _loggingService;
+        private readonly ILogger _logger;
         private readonly ISettingsService _settingsService;
         private readonly Dictionary<string, RefactoringAnalyzer> _languageAnalyzers;
 
         public CodeRefactoringService(
             IOllamaService ollamaService,
             IAdvancedContextAnalysisService contextAnalysisService,
-            ILoggingService loggingService,
+            ILogger logger,
             ISettingsService settingsService)
         {
             _ollamaService = ollamaService ?? throw new ArgumentNullException(nameof(ollamaService));
             _contextAnalysisService = contextAnalysisService ?? throw new ArgumentNullException(nameof(contextAnalysisService));
-            _loggingService = loggingService ?? throw new ArgumentNullException(nameof(loggingService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
 
             _languageAnalyzers = InitializeLanguageAnalyzers();
@@ -48,7 +49,7 @@ namespace OllamaAssistant.Services.Implementation
         {
             try
             {
-                _loggingService.LogDebug("Starting refactoring analysis", new { FilePath = filePath, HasSelection = selectedSpan != default });
+                _logger.LogDebug("Starting refactoring analysis", new { FilePath = filePath, HasSelection = selectedSpan != default });
 
                 var suggestions = new List<RefactoringSuggestion>();
                 var language = DetermineLanguage(filePath);
@@ -76,12 +77,12 @@ namespace OllamaAssistant.Services.Implementation
                 // Rank and filter suggestions by confidence and relevance
                 var rankedSuggestions = RankSuggestions(suggestions, structuralAnalysis);
 
-                _loggingService.LogInfo($"Generated {rankedSuggestions.Count} refactoring suggestions for {filePath}");
+                _logger.LogInfo($"Generated {rankedSuggestions.Count} refactoring suggestions for {filePath}");
                 return rankedSuggestions.Take(GetMaxSuggestions()).ToList();
             }
             catch (Exception ex)
             {
-                _loggingService.LogError("Error generating refactoring suggestions", ex);
+                _logger.LogError("Error generating refactoring suggestions", ex);
                 return new List<RefactoringSuggestion>();
             }
         }
@@ -97,7 +98,7 @@ namespace OllamaAssistant.Services.Implementation
         {
             try
             {
-                _loggingService.LogDebug("Applying refactoring", new { FilePath = filePath, SuggestionType = suggestion.Type });
+                _logger.LogDebug("Applying refactoring", new { FilePath = filePath, SuggestionType = suggestion.Type });
 
                 var language = DetermineLanguage(filePath);
                 
@@ -134,13 +135,13 @@ namespace OllamaAssistant.Services.Implementation
                     return RefactoringResult.Failed($"Refactored code is invalid: {validationResult.ErrorMessage}");
                 }
 
-                _loggingService.LogInfo("Successfully applied refactoring", new { FilePath = filePath, SuggestionType = suggestion.Type });
+                _logger.LogInfo("Successfully applied refactoring", new { FilePath = filePath, SuggestionType = suggestion.Type });
 
                 return RefactoringResult.Success(refactoredCode, CalculateChanges(codeContent, refactoredCode));
             }
             catch (Exception ex)
             {
-                _loggingService.LogError("Error applying refactoring", ex);
+                _logger.LogError("Error applying refactoring", ex);
                 return RefactoringResult.Failed($"Error applying refactoring: {ex.Message}");
             }
         }
@@ -173,11 +174,11 @@ namespace OllamaAssistant.Services.Implementation
         {
             return new Dictionary<string, RefactoringAnalyzer>
             {
-                ["csharp"] = new CSharpRefactoringAnalyzer(_loggingService),
-                ["javascript"] = new JavaScriptRefactoringAnalyzer(_loggingService),
-                ["typescript"] = new TypeScriptRefactoringAnalyzer(_loggingService),
-                ["python"] = new PythonRefactoringAnalyzer(_loggingService),
-                ["java"] = new JavaRefactoringAnalyzer(_loggingService)
+                ["csharp"] = new CSharpRefactoringAnalyzer(_logger),
+                ["javascript"] = new JavaScriptRefactoringAnalyzer(_logger),
+                ["typescript"] = new TypeScriptRefactoringAnalyzer(_logger),
+                ["python"] = new PythonRefactoringAnalyzer(_logger),
+                ["java"] = new JavaRefactoringAnalyzer(_logger)
             };
         }
 
@@ -332,7 +333,7 @@ Focus on:
             }
             catch (Exception ex)
             {
-                _loggingService.LogWarning("Failed to parse AI refactoring suggestions", ex);
+                _logger.LogWarning("Failed to parse AI refactoring suggestions", ex);
             }
 
             return suggestions;
@@ -736,7 +737,7 @@ Please provide only the refactored code without explanation.";
             }
             catch (Exception ex)
             {
-                _loggingService.LogWarning("Failed to analyze C# specifics", ex);
+                _logger.LogWarning("Failed to analyze C# specifics", ex);
             }
         }
 
@@ -791,11 +792,11 @@ Please provide only the refactored code without explanation.";
     /// </summary>
     public abstract class RefactoringAnalyzer
     {
-        protected readonly ILoggingService _loggingService;
+        protected readonly ILogger _logger;
 
-        protected RefactoringAnalyzer(ILoggingService loggingService)
+        protected RefactoringAnalyzer(ILogger logger)
         {
-            _loggingService = loggingService;
+            _logger = logger;
         }
 
         public abstract Task<List<RefactoringSuggestion>> AnalyzeAsync(
@@ -864,7 +865,7 @@ Please provide only the refactored code without explanation.";
             }
             catch (Exception ex)
             {
-                _loggingService.LogWarning("Error in C# refactoring analysis", ex);
+                _logger.LogWarning("Error in C# refactoring analysis", ex);
             }
 
             return suggestions;
