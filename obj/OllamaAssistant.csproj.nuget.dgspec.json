@@ -1,33 +1,27 @@
 {
   "format": 1,
   "restore": {
-    "U:\\VS2022-AI-Extension\\OllamaAssistant.csproj": {}
+    "/Users/michaelleib/Development/VS2022-AI-Extension/OllamaAssistant.csproj": {}
   },
   "projects": {
-    "U:\\VS2022-AI-Extension\\OllamaAssistant.csproj": {
+    "/Users/michaelleib/Development/VS2022-AI-Extension/OllamaAssistant.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "U:\\VS2022-AI-Extension\\OllamaAssistant.csproj",
+        "projectUniqueName": "/Users/michaelleib/Development/VS2022-AI-Extension/OllamaAssistant.csproj",
         "projectName": "OllamaAssistant",
-        "projectPath": "U:\\VS2022-AI-Extension\\OllamaAssistant.csproj",
-        "packagesPath": "C:\\Users\\MicLeib\\.nuget\\packages\\",
-        "outputPath": "U:\\VS2022-AI-Extension\\obj\\",
+        "projectPath": "/Users/michaelleib/Development/VS2022-AI-Extension/OllamaAssistant.csproj",
+        "packagesPath": "/Users/michaelleib/.nuget/packages/",
+        "outputPath": "/Users/michaelleib/Development/VS2022-AI-Extension/obj/",
         "projectStyle": "PackageReference",
         "skipContentFileWrite": true,
         "UsingMicrosoftNETSdk": false,
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\MicLeib\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/Users/michaelleib/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net472"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -90,20 +84,6 @@
               "version": "[17.0.32112.339, )"
             }
           }
-        }
-      },
-      "runtimes": {
-        "win": {
-          "#import": []
-        },
-        "win-arm64": {
-          "#import": []
-        },
-        "win-x64": {
-          "#import": []
-        },
-        "win-x86": {
-          "#import": []
         }
       }
     }

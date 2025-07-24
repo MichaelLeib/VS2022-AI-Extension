@@ -76,7 +76,7 @@ namespace OllamaAssistant.Services.Interfaces
         /// <summary>
         /// Gets the current cursor position as a CursorPosition object
         /// </summary>
-        Models.CursorPosition GetCurrentPosition();
+        CursorPosition GetCurrentPosition();
     }
 
     /// <summary>
