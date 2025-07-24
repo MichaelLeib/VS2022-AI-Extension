@@ -10,7 +10,6 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using OllamaAssistant.Services.Interfaces;
-using OllamaAssistant.Models.Events;
 using OllamaAssistant.Models;
 
 namespace OllamaAssistant.Services.Implementation
@@ -425,8 +424,8 @@ namespace OllamaAssistant.Services.Implementation
             {
                 var caretPosition = textView.Caret.Position.BufferPosition;
                 var line = caretPosition.GetContainingLine();
-                
-                return new Models.CursorPosition
+
+                return new OllamaAssistant.Models.CursorPosition
                 {
                     Line = line.LineNumber + 1, // Convert to 1-based
                     Column = caretPosition.Position - line.Start.Position, // Keep 0-based
