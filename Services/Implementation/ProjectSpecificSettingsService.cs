@@ -112,7 +112,7 @@ namespace OllamaAssistant.Services.Implementation
             
             // Save to file
             var filePath = Path.Combine(directoryPath, OllamaRcFileName);
-            await File.WriteAllTextAsync(filePath, content);
+            await Task.Run(() => File.WriteAllText(filePath, content));
 
             // Invalidate related caches
             InvalidateRelatedCaches(directoryPath);
@@ -133,7 +133,7 @@ namespace OllamaAssistant.Services.Implementation
 
             try
             {
-                var content = await File.ReadAllTextAsync(filePath);
+                var content = await Task.Run(() => File.ReadAllText(filePath));
                 return ParseOllamaRcContent(content);
             }
             catch (Exception ex)
@@ -628,7 +628,7 @@ namespace OllamaAssistant.Services.Implementation
         {
             try
             {
-                var content = await File.ReadAllTextAsync(filePath);
+                var content = await Task.Run(() => File.ReadAllText(filePath));
                 var config = ParseOllamaRcContent(content);
                 return ValidateOllamaRcConfiguration(config).IsValid;
             }
@@ -645,7 +645,7 @@ namespace OllamaAssistant.Services.Implementation
         {
             try
             {
-                var json = await File.ReadAllTextAsync(filePath);
+                var json = await Task.Run(() => File.ReadAllText(filePath));
                 var settings = JsonSerializer.Deserialize<ProjectSettings>(json);
                 return ValidateProjectSettings(settings).IsValid;
             }
@@ -662,7 +662,7 @@ namespace OllamaAssistant.Services.Implementation
         {
             try
             {
-                var json = await File.ReadAllTextAsync(filePath);
+                var json = await Task.Run(() => File.ReadAllText(filePath));
                 var settings = JsonSerializer.Deserialize<TeamSettingsConfiguration>(json);
                 return ValidateTeamSettingsConfiguration(settings).IsValid;
             }
@@ -1043,7 +1043,7 @@ namespace OllamaAssistant.Services.Implementation
                 // Merge context configuration
                 if (level.Settings.ContextConfiguration != null)
                 {
-                    result.ContextConfiguration ??= new ContextConfiguration();
+                    result.ContextConfiguration = result.ContextConfiguration ?? new ContextConfiguration();
                     
                     if (level.Settings.ContextConfiguration.LinesUp.HasValue)
                         result.ContextConfiguration.LinesUp = level.Settings.ContextConfiguration.LinesUp;
@@ -1058,7 +1058,7 @@ namespace OllamaAssistant.Services.Implementation
                 // Merge performance settings
                 if (level.Settings.PerformanceSettings != null)
                 {
-                    result.PerformanceSettings ??= new PerformanceSettings();
+                    result.PerformanceSettings = result.PerformanceSettings ?? new PerformanceSettings();
                     
                     if (level.Settings.PerformanceSettings.RequestTimeoutSeconds.HasValue)
                         result.PerformanceSettings.RequestTimeoutSeconds = level.Settings.PerformanceSettings.RequestTimeoutSeconds;
@@ -1088,7 +1088,7 @@ namespace OllamaAssistant.Services.Implementation
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             });
 
-            await File.WriteAllTextAsync(filePath, json);
+            await Task.Run(() => File.WriteAllText(filePath, json));
         }
 
         public async Task<TeamSettingsConfiguration> GetTeamSettingsAsync(string projectPath)
@@ -1100,7 +1100,7 @@ namespace OllamaAssistant.Services.Implementation
 
             try
             {
-                var json = await File.ReadAllTextAsync(filePath);
+                var json = await Task.Run(() => File.ReadAllText(filePath));
                 return JsonSerializer.Deserialize<TeamSettingsConfiguration>(json, new JsonSerializerOptions
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase

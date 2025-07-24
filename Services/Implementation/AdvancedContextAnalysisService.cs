@@ -274,7 +274,7 @@ namespace OllamaAssistant.Services.Implementation
                 if (!File.Exists(filePath))
                     return info;
 
-                var content = await File.ReadAllTextAsync(filePath);
+                var content = await Task.Run(() => File.ReadAllText(filePath));
                 var language = GetLanguageFromExtension(Path.GetExtension(filePath));
 
                 if (language == "csharp")
@@ -303,7 +303,7 @@ namespace OllamaAssistant.Services.Implementation
                 if (!File.Exists(filePath))
                     return analysis;
 
-                var content = await File.ReadAllTextAsync(filePath);
+                var content = await Task.Run(() => File.ReadAllText(filePath));
                 var lines = content.Split('\n');
 
                 if (startLine < 0 || endLine >= lines.Length || startLine > endLine)

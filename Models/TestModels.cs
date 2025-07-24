@@ -4,37 +4,6 @@ using System.Collections.Generic;
 namespace OllamaAssistant.Models
 {
     /// <summary>
-    /// Represents a cursor position in the editor
-    /// </summary>
-    public class CursorPosition
-    {
-        /// <summary>
-        /// Line number (1-based)
-        /// </summary>
-        public int Line { get; set; }
-
-        /// <summary>
-        /// Column number (0-based)
-        /// </summary>
-        public int Column { get; set; }
-
-        /// <summary>
-        /// File path
-        /// </summary>
-        public string FilePath { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Timestamp when the position was recorded
-        /// </summary>
-        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-
-        /// <summary>
-        /// Additional context information
-        /// </summary>
-        public string Context { get; set; } = string.Empty;
-    }
-
-    /// <summary>
     /// Represents surrounding code context
     /// </summary>
     public class SurroundingCodeContext

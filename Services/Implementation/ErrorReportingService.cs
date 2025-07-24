@@ -124,7 +124,7 @@ namespace OllamaAssistant.Services.Implementation
                     }
 
                     // Count reports by type (basic analysis)
-                    var content = await File.ReadAllTextAsync(file);
+                    var content = await Task.Run(() => File.ReadAllText(file));
                     if (content.Contains("ConnectionFailed"))
                         stats.ConnectionErrors++;
                     else if (content.Contains("AIResponseFailed"))
@@ -252,7 +252,7 @@ namespace OllamaAssistant.Services.Implementation
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                 });
 
-                await File.WriteAllTextAsync(filepath, json);
+                await Task.Run(() => File.WriteAllText(filepath, json));
             }
             catch (Exception ex)
             {
@@ -322,7 +322,7 @@ namespace OllamaAssistant.Services.Implementation
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                 });
 
-                await File.WriteAllTextAsync(filepath, json);
+                await Task.Run(() => File.WriteAllText(filepath, json));
             }
             catch (Exception ex)
             {
@@ -381,7 +381,7 @@ namespace OllamaAssistant.Services.Implementation
                     WriteIndented = true
                 });
 
-                await File.WriteAllTextAsync(filepath, json);
+                await Task.Run(() => File.WriteAllText(filepath, json));
             }
             catch
             {

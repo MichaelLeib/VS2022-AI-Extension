@@ -254,7 +254,7 @@ namespace OllamaAssistant.Services.Implementation
                     Converters = { new JsonStringEnumConverter() }
                 });
 
-                await File.WriteAllTextAsync(exportPath, json);
+                await Task.Run(() => File.WriteAllText(exportPath, json));
                 return exportPath;
             }
             catch (Exception ex)
@@ -274,7 +274,7 @@ namespace OllamaAssistant.Services.Implementation
 
             try
             {
-                var json = await File.ReadAllTextAsync(importPath);
+                var json = await Task.Run(() => File.ReadAllText(importPath));
                 var importData = JsonSerializer.Deserialize<LearningDataExport>(json, new JsonSerializerOptions
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -314,7 +314,7 @@ namespace OllamaAssistant.Services.Implementation
                 var interactionFile = Path.Combine(_learningDataDirectory, "interactions.json");
                 if (File.Exists(interactionFile))
                 {
-                    var interactionJson = await File.ReadAllTextAsync(interactionFile);
+                    var interactionJson = await Task.Run(() => File.ReadAllText(interactionFile));
                     var interactionData = JsonSerializer.Deserialize<Dictionary<string, object>>(interactionJson);
                     await _interactionTracker.ImportDataAsync(interactionData);
                 }
@@ -323,7 +323,7 @@ namespace OllamaAssistant.Services.Implementation
                 var styleFile = Path.Combine(_learningDataDirectory, "style.json");
                 if (File.Exists(styleFile))
                 {
-                    var styleJson = await File.ReadAllTextAsync(styleFile);
+                    var styleJson = await Task.Run(() => File.ReadAllText(styleFile));
                     var styleData = JsonSerializer.Deserialize<Dictionary<string, object>>(styleJson);
                     await _styleAnalyzer.ImportDataAsync(styleData);
                 }
@@ -332,7 +332,7 @@ namespace OllamaAssistant.Services.Implementation
                 var patternFile = Path.Combine(_learningDataDirectory, "patterns.json");
                 if (File.Exists(patternFile))
                 {
-                    var patternJson = await File.ReadAllTextAsync(patternFile);
+                    var patternJson = await Task.Run(() => File.ReadAllText(patternFile));
                     var patternData = JsonSerializer.Deserialize<Dictionary<string, object>>(patternJson);
                     await _patternLearner.ImportDataAsync(patternData);
                 }
@@ -341,7 +341,7 @@ namespace OllamaAssistant.Services.Implementation
                 var personalizationFile = Path.Combine(_learningDataDirectory, "personalization.json");
                 if (File.Exists(personalizationFile))
                 {
-                    var personalizationJson = await File.ReadAllTextAsync(personalizationFile);
+                    var personalizationJson = await Task.Run(() => File.ReadAllText(personalizationFile));
                     var personalizationData = JsonSerializer.Deserialize<Dictionary<string, object>>(personalizationJson);
                     await _personalizationEngine.ImportDataAsync(personalizationData);
                 }
@@ -350,7 +350,7 @@ namespace OllamaAssistant.Services.Implementation
                 var analyticsFile = Path.Combine(_learningDataDirectory, "analytics.json");
                 if (File.Exists(analyticsFile))
                 {
-                    var analyticsJson = await File.ReadAllTextAsync(analyticsFile);
+                    var analyticsJson = await Task.Run(() => File.ReadAllText(analyticsFile));
                     var analyticsData = JsonSerializer.Deserialize<Dictionary<string, object>>(analyticsJson);
                     _analyticsCollector.ImportData(analyticsData);
                 }
@@ -375,7 +375,7 @@ namespace OllamaAssistant.Services.Implementation
                     WriteIndented = true,
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                 });
-                await File.WriteAllTextAsync(Path.Combine(_learningDataDirectory, "interactions.json"), interactionJson);
+                await Task.Run(() => File.WriteAllText(Path.Combine(_learningDataDirectory, "interactions.json"), interactionJson));
 
                 // Save style data
                 var styleData = await _styleAnalyzer.ExportDataAsync();
@@ -384,7 +384,7 @@ namespace OllamaAssistant.Services.Implementation
                     WriteIndented = true,
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                 });
-                await File.WriteAllTextAsync(Path.Combine(_learningDataDirectory, "style.json"), styleJson);
+                await Task.Run(() => File.WriteAllText(Path.Combine(_learningDataDirectory, "style.json"), styleJson));
 
                 // Save pattern data
                 var patternData = await _patternLearner.ExportDataAsync();
@@ -393,7 +393,7 @@ namespace OllamaAssistant.Services.Implementation
                     WriteIndented = true,
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                 });
-                await File.WriteAllTextAsync(Path.Combine(_learningDataDirectory, "patterns.json"), patternJson);
+                await Task.Run(() => File.WriteAllText(Path.Combine(_learningDataDirectory, "patterns.json"), patternJson));
 
                 // Save personalization data
                 var personalizationData = await _personalizationEngine.ExportDataAsync();
@@ -402,7 +402,7 @@ namespace OllamaAssistant.Services.Implementation
                     WriteIndented = true,
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                 });
-                await File.WriteAllTextAsync(Path.Combine(_learningDataDirectory, "personalization.json"), personalizationJson);
+                await Task.Run(() => File.WriteAllText(Path.Combine(_learningDataDirectory, "personalization.json"), personalizationJson));
 
                 // Save analytics data
                 var analyticsData = _analyticsCollector.ExportData();
@@ -411,7 +411,7 @@ namespace OllamaAssistant.Services.Implementation
                     WriteIndented = true,
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                 });
-                await File.WriteAllTextAsync(Path.Combine(_learningDataDirectory, "analytics.json"), analyticsJson);
+                await Task.Run(() => File.WriteAllText(Path.Combine(_learningDataDirectory, "analytics.json"), analyticsJson));
             }
             catch (Exception ex)
             {

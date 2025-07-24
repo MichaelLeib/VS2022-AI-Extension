@@ -232,7 +232,7 @@ namespace OllamaAssistant.Services.Implementation
                 Converters = { new JsonStringEnumConverter() }
             });
 
-            await File.WriteAllTextAsync(filePath, json);
+            await Task.Run(() => File.WriteAllText(filePath, json));
         }
 
         /// <summary>
@@ -243,13 +243,13 @@ namespace OllamaAssistant.Services.Implementation
             if (_disposed || string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
                 return new ConfigurationImportResult { Success = false, ErrorMessage = "File not found or invalid path" };
 
-            options ??= new ConfigurationImportOptions();
+            options = options ?? new ConfigurationImportOptions();
             var result = new ConfigurationImportResult();
 
             try
             {
                 // Read and validate file
-                var json = await File.ReadAllTextAsync(filePath);
+                var json = await Task.Run(() => File.ReadAllText(filePath));
                 var importData = JsonSerializer.Deserialize<ConfigurationExport>(json, new JsonSerializerOptions
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -861,7 +861,7 @@ Refactoring suggestions:",
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                 });
 
-                await File.WriteAllTextAsync(filePath, json);
+                await Task.Run(() => File.WriteAllText(filePath, json));
             }
             catch (Exception ex)
             {
@@ -884,7 +884,7 @@ Refactoring suggestions:",
                     Converters = { new JsonStringEnumConverter() }
                 });
 
-                await File.WriteAllTextAsync(filePath, json);
+                await Task.Run(() => File.WriteAllText(filePath, json));
             }
             catch (Exception ex)
             {
@@ -907,7 +907,7 @@ Refactoring suggestions:",
                     Converters = { new JsonStringEnumConverter() }
                 });
 
-                await File.WriteAllTextAsync(filePath, json);
+                await Task.Run(() => File.WriteAllText(filePath, json));
             }
             catch (Exception ex)
             {
@@ -955,7 +955,7 @@ Refactoring suggestions:",
         {
             try
             {
-                var json = await File.ReadAllTextAsync(filePath);
+                var json = await Task.Run(() => File.ReadAllText(filePath));
                 var config = JsonSerializer.Deserialize<ModelConfiguration>(json, new JsonSerializerOptions
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
@@ -982,7 +982,7 @@ Refactoring suggestions:",
         {
             try
             {
-                var json = await File.ReadAllTextAsync(filePath);
+                var json = await Task.Run(() => File.ReadAllText(filePath));
                 var template = JsonSerializer.Deserialize<PromptTemplate>(json, new JsonSerializerOptions
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -1010,7 +1010,7 @@ Refactoring suggestions:",
         {
             try
             {
-                var json = await File.ReadAllTextAsync(filePath);
+                var json = await Task.Run(() => File.ReadAllText(filePath));
                 var config = JsonSerializer.Deserialize<ContextWindowConfiguration>(json, new JsonSerializerOptions
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase,

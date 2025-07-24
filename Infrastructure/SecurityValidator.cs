@@ -10,7 +10,7 @@ namespace OllamaAssistant.Infrastructure
     /// <summary>
     /// Security validator for input validation and sensitive data filtering
     /// </summary>
-    public class SecurityValidator
+    public class SecurityValidator : IDisposable
     {
         private readonly int _maxRequestSizeBytes;
         private readonly HashSet<string> _sensitivePatterns;
@@ -22,6 +22,7 @@ namespace OllamaAssistant.Infrastructure
         private readonly Regex _pathTraversalPattern;
         private readonly Regex _environmentVariablePattern;
         private readonly Dictionary<string, (double min, double max)> _settingsRanges;
+        private bool _disposed = false;
 
         public SecurityValidator(int maxRequestSizeKB = 100)
         {
@@ -389,6 +390,162 @@ namespace OllamaAssistant.Infrastructure
             catch (Exception ex)
             {
                 return SecurityValidationResult.Invalid($"Settings validation error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Validates that a prompt template is safe to use
+        /// </summary>
+        public SecurityValidationResult ValidatePromptTemplate(string template)
+        {
+            if (string.IsNullOrEmpty(template))
+                return SecurityValidationResult.Invalid("Template cannot be null or empty");
+
+            try
+            {
+                var issues = new List<string>();
+
+                // Check for sensitive data patterns
+                var sensitiveIssues = FindSensitiveData(template);
+                issues.AddRange(sensitiveIssues);
+
+                // Check for dangerous commands
+                var dangerousCommands = FindDangerousCommands(template);
+                if (dangerousCommands.Any())
+                {
+                    issues.Add($"Contains potentially dangerous commands: {string.Join(", ", dangerousCommands)}");
+                }
+
+                // Check for script injection
+                if (ContainsScriptInjection(template))
+                {
+                    issues.Add("Contains potentially dangerous script content");
+                }
+
+                if (issues.Any())
+                {
+                    return new SecurityValidationResult
+                    {
+                        IsValid = false,
+                        ErrorMessage = string.Join("; ", issues),
+                        SecurityIssues = issues
+                    };
+                }
+
+                return SecurityValidationResult.Valid();
+            }
+            catch (Exception ex)
+            {
+                return SecurityValidationResult.Invalid($"Template validation error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Sanitizes a general string by removing sensitive data
+        /// </summary>
+        public string SanitizeString(string input)
+        {
+            return SanitizeInput(input);
+        }
+
+        /// <summary>
+        /// Sanitizes prompt content with additional AI-specific filtering
+        /// </summary>
+        public string SanitizePromptContent(string promptContent)
+        {
+            if (string.IsNullOrEmpty(promptContent))
+                return promptContent;
+
+            var sanitized = SanitizeInput(promptContent);
+
+            // Additional AI-specific sanitization
+            try
+            {
+                // Remove system prompts or jailbreak attempts
+                var jailbreakPatterns = new[]
+                {
+                    @"ignore\s+previous\s+instructions",
+                    @"forget\s+everything\s+above",
+                    @"act\s+as\s+if\s+you\s+are",
+                    @"pretend\s+to\s+be",
+                    @"simulate\s+being",
+                    @"roleplay\s+as"
+                };
+
+                foreach (var pattern in jailbreakPatterns)
+                {
+                    sanitized = Regex.Replace(sanitized, pattern, "[FILTERED]", RegexOptions.IgnoreCase);
+                }
+
+                return sanitized;
+            }
+            catch (Exception)
+            {
+                return "[PROMPT_SANITIZED]";
+            }
+        }
+
+        /// <summary>
+        /// Sanitizes URL to ensure it's safe to use
+        /// </summary>
+        public string SanitizeUrl(string url)
+        {
+            if (string.IsNullOrEmpty(url))
+                return url;
+
+            try
+            {
+                if (!IsUrlSafe(url))
+                {
+                    return "http://localhost:11434"; // Default safe Ollama URL
+                }
+
+                var uri = new Uri(url);
+                
+                // Ensure only safe schemes
+                var safeSchemes = new[] { "http", "https" };
+                if (!safeSchemes.Contains(uri.Scheme.ToLowerInvariant()))
+                {
+                    return "http://localhost:11434";
+                }
+
+                // Clean up the URL
+                return uri.ToString();
+            }
+            catch (Exception)
+            {
+                return "http://localhost:11434";
+            }
+        }
+
+        /// <summary>
+        /// Disposes of the SecurityValidator instance
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Protected dispose method
+        /// </summary>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _credentialPattern?.Dispose();
+                    _emailPattern?.Dispose();
+                    _ipAddressPattern?.Dispose();
+                    _urlPattern?.Dispose();
+                    _pathTraversalPattern?.Dispose();
+                    _environmentVariablePattern?.Dispose();
+                }
+
+                _disposed = true;
             }
         }
 

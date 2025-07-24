@@ -186,9 +186,9 @@ namespace OllamaAssistant.Services.Interfaces
     }
 
     /// <summary>
-    /// Represents a cursor position
+    /// Represents a cursor position for jump notifications
     /// </summary>
-    public class CursorPosition
+    public class JumpCursorPosition
     {
         public string FilePath { get; set; }
         public int Line { get; set; }

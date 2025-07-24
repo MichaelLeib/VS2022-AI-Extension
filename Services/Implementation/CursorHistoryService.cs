@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text;
 using OllamaAssistant.Models;
 using OllamaAssistant.Services.Interfaces;
@@ -217,6 +218,26 @@ namespace OllamaAssistant.Services.Implementation
                     _history.RemoveLast();
                 }
             }
+        }
+
+        public async Task AddEntryAsync(CursorHistoryEntry entry)
+        {
+            await Task.Run(() => RecordCursorPosition(entry));
+        }
+
+        public async Task ClearHistoryAsync()
+        {
+            await Task.Run(() => ClearHistory());
+        }
+
+        public async Task ClearHistoryForFileAsync(string filePath)
+        {
+            await Task.Run(() => ClearFileHistory(filePath));
+        }
+
+        public async Task CleanupFileDataAsync(string filePath)
+        {
+            await Task.Run(() => ClearFileHistory(filePath));
         }
 
         #endregion
