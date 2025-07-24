@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using OllamaAssistant.Models.Events;
 
 namespace OllamaAssistant.Services.Interfaces
 {
@@ -71,6 +72,11 @@ namespace OllamaAssistant.Services.Interfaces
         /// Gets the current column position (0-based)
         /// </summary>
         int GetCurrentColumn();
+
+        /// <summary>
+        /// Gets the current cursor position as a CursorPosition object
+        /// </summary>
+        Models.CursorPosition GetCurrentPosition();
     }
 
     /// <summary>
@@ -84,14 +90,5 @@ namespace OllamaAssistant.Services.Interfaces
         public string FilePath { get; set; }
     }
 
-    /// <summary>
-    /// Event args for caret position change events
-    /// </summary>
-    public class CaretPositionChangedEventArgs : EventArgs
-    {
-        public SnapshotPoint OldPosition { get; set; }
-        public SnapshotPoint NewPosition { get; set; }
-        public string FilePath { get; set; }
-        public bool IsUserInitiated { get; set; }
-    }
+
 }

@@ -10,6 +10,8 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using OllamaAssistant.Services.Interfaces;
+using OllamaAssistant.Models.Events;
+using OllamaAssistant.Models;
 
 namespace OllamaAssistant.Services.Implementation
 {
@@ -42,17 +44,11 @@ namespace OllamaAssistant.Services.Implementation
         public event EventHandler<TextChangedEventArgs> TextChanged;
         public event EventHandler<Microsoft.VisualStudio.Text.Editor.CaretPositionChangedEventArgs> CaretPositionChanged;
 
-        event EventHandler<Interfaces.CaretPositionChangedEventArgs> ITextViewService.CaretPositionChanged
+        private event EventHandler<CaretPositionChangedEventArgs> _customCaretPositionChanged;
+        event EventHandler<CaretPositionChangedEventArgs> ITextViewService.CaretPositionChanged
         {
-            add
-            {
-                throw new NotImplementedException();
-            }
-
-            remove
-            {
-                throw new NotImplementedException();
-            }
+            add { _customCaretPositionChanged += value; }
+            remove { _customCaretPositionChanged -= value; }
         }
 
         #endregion
@@ -417,6 +413,33 @@ namespace OllamaAssistant.Services.Implementation
             }
         }
 
+        public Models.CursorPosition GetCurrentPosition()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            var textView = GetActiveTextView();
+            if (textView == null)
+                return null;
+
+            try
+            {
+                var caretPosition = textView.Caret.Position.BufferPosition;
+                var line = caretPosition.GetContainingLine();
+                
+                return new Models.CursorPosition
+                {
+                    Line = line.LineNumber + 1, // Convert to 1-based
+                    Column = caretPosition.Position - line.Start.Position, // Keep 0-based
+                    FilePath = GetCurrentFilePath(),
+                    Timestamp = DateTime.UtcNow
+                };
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         #endregion
 
         #region Event Management
@@ -523,7 +546,7 @@ namespace OllamaAssistant.Services.Implementation
 
                 try
                 {
-                    CaretPositionChanged?.Invoke(this, CaretPositionChangedEventArgs
+                    _customCaretPositionChanged?.Invoke(this, new CaretPositionChangedEventArgs
                     {
                         OldPosition = e.OldPosition.BufferPosition,
                         NewPosition = e.NewPosition.BufferPosition,
