@@ -509,7 +509,7 @@ namespace OllamaAssistant.Services.Implementation
     /// </summary>
     internal class UserInteractionTracker : IDisposable
     {
-        private readonly List<SuggestionFeedback> _interactions = new();
+        private readonly List<SuggestionFeedback> _interactions
         private readonly object _lock = new object();
 
         public int TotalInteractions => _interactions.Count;
@@ -654,7 +654,7 @@ namespace OllamaAssistant.Services.Implementation
     /// </summary>
     internal class CodingStyleAnalyzer : IDisposable
     {
-        private readonly Dictionary<string, CodingStyleElement> _styleElements = new();
+        private readonly Dictionary<string, CodingStyleElement> _styleElements
         private readonly object _lock = new object();
 
         public int StyleElementCount => _styleElements.Count;
@@ -918,7 +918,7 @@ namespace OllamaAssistant.Services.Implementation
     /// </summary>
     internal class PatternLearner : IDisposable
     {
-        private readonly Dictionary<string, LearnedPattern> _patterns = new();
+        private readonly Dictionary<string, LearnedPattern> _patterns
         private readonly object _lock = new object();
 
         public int PatternCount => _patterns.Count;
@@ -1125,7 +1125,7 @@ namespace OllamaAssistant.Services.Implementation
     /// </summary>
     internal class PersonalizationEngine : IDisposable
     {
-        private readonly Dictionary<string, PersonalizationData> _personalizationData = new();
+        private readonly Dictionary<string, PersonalizationData> _personalizationData
         private readonly object _lock = new object();
 
         public double PersonalizationScore
@@ -1331,7 +1331,7 @@ namespace OllamaAssistant.Services.Implementation
     /// </summary>
     internal class UsageAnalyticsCollector : IDisposable
     {
-        private readonly List<AnalyticsDataPoint> _dataPoints = new();
+        private readonly List<AnalyticsDataPoint> _dataPoints
         private readonly object _lock = new object();
 
         public int DataPointCount => _dataPoints.Count;
@@ -1492,13 +1492,13 @@ namespace OllamaAssistant.Services.Implementation
         public string PreferredNamingConvention { get; set; }
         public string BraceStyle { get; set; }
         public double AverageLineLength { get; set; }
-        public List<string> AnalysisErrors { get; set; } = new();
+        public List<string> AnalysisErrors { get; set; }
     }
 
     public class PersonalizedSuggestions
     {
         public CodeContext Context { get; set; }
-        public List<PersonalizedSuggestion> Suggestions { get; set; } = new();
+        public List<PersonalizedSuggestion> Suggestions { get; set; }
         public DateTime GeneratedAt { get; set; }
     }
 
@@ -1549,7 +1549,7 @@ namespace OllamaAssistant.Services.Implementation
         public int AcceptedSuggestions { get; set; }
         public int RejectedSuggestions { get; set; }
         public double AcceptanceRate { get; set; }
-        public Dictionary<string, double> AcceptanceByType { get; set; } = new();
+        public Dictionary<string, double> AcceptanceByType { get; set; }
         public double RecentAcceptanceRate { get; set; }
     }
 
@@ -1575,7 +1575,7 @@ namespace OllamaAssistant.Services.Implementation
     public class AnalyticsSummary
     {
         public int TotalDataPoints { get; set; }
-        public Dictionary<string, int> DataPointsByType { get; set; } = new();
+        public Dictionary<string, int> DataPointsByType { get; set; }
         public double OverallAcceptanceRate { get; set; }
         public double AverageResponseTime { get; set; }
         public DateTime LastDataPoint { get; set; }
@@ -1583,8 +1583,8 @@ namespace OllamaAssistant.Services.Implementation
 
     public class UserPreferences
     {
-        public Dictionary<string, double> PreferredLanguages { get; set; } = new();
-        public Dictionary<string, double> SuggestionTypePreferences { get; set; } = new();
+        public Dictionary<string, double> PreferredLanguages { get; set; }
+        public Dictionary<string, double> SuggestionTypePreferences { get; set; }
         public double PersonalizationScore { get; set; }
         public DateTime LastUpdate { get; set; }
     }
@@ -1622,6 +1622,6 @@ namespace OllamaAssistant.Services.Implementation
     {
         public string Type { get; set; }
         public DateTime Timestamp { get; set; }
-        public Dictionary<string, object> Data { get; set; } = new();
+        public Dictionary<string, object> Data { get; set; }
     }
 }

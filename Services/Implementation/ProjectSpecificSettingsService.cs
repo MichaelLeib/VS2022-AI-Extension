@@ -887,7 +887,7 @@ namespace OllamaAssistant.Services.Implementation
         public bool? EnableJumpRecommendations { get; set; }
         public ContextConfiguration ContextConfiguration { get; set; }
         public PerformanceSettings PerformanceSettings { get; set; }
-        public Dictionary<string, object> CustomSettings { get; set; } = new();
+        public Dictionary<string, object> CustomSettings { get; set; }
     }
 
     /// <summary>
@@ -937,8 +937,8 @@ namespace OllamaAssistant.Services.Implementation
         public bool? EnableJumpRecommendations { get; set; }
         public ContextConfiguration ContextConfiguration { get; set; }
         public PerformanceSettings PerformanceSettings { get; set; }
-        public List<string> AllowedModels { get; set; } = new();
-        public Dictionary<string, object> TeamPolicies { get; set; } = new();
+        public List<string> AllowedModels { get; set; }
+        public Dictionary<string, object> TeamPolicies { get; set; }
     }
 
     /// <summary>
@@ -971,9 +971,9 @@ namespace OllamaAssistant.Services.Implementation
         public string ProjectPath { get; set; }
         public bool Success { get; set; }
         public string ErrorMessage { get; set; }
-        public List<ConfigurationFileInfo> OllamaRcFiles { get; set; } = new();
-        public List<ConfigurationFileInfo> ProjectSettingsFiles { get; set; } = new();
-        public List<ConfigurationFileInfo> TeamSettingsFiles { get; set; } = new();
+        public List<ConfigurationFileInfo> OllamaRcFiles { get; set; }
+        public List<ConfigurationFileInfo> ProjectSettingsFiles { get; set; }
+        public List<ConfigurationFileInfo> TeamSettingsFiles { get; set; }
     }
 
     /// <summary>
@@ -994,8 +994,8 @@ namespace OllamaAssistant.Services.Implementation
     {
         public bool IsValid { get; set; }
         public string ErrorMessage { get; set; }
-        public List<string> ValidationErrors { get; set; } = new();
-        public List<string> Warnings { get; set; } = new();
+        public List<string> ValidationErrors { get; set; }
+        public List<string> Warnings { get; set; }
     }
 
     /// <summary>
@@ -1004,7 +1004,7 @@ namespace OllamaAssistant.Services.Implementation
     public class ConflictCheckResult
     {
         public bool HasConflicts { get; set; }
-        public List<string> Conflicts { get; set; } = new();
+        public List<string> Conflicts { get; set; }
     }
 
     /// <summary>

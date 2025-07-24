@@ -53,6 +53,16 @@ namespace OllamaAssistant.Models
         public int Priority { get; set; }
 
         /// <summary>
+        /// The programming language of the suggestion
+        /// </summary>
+        public string Language { get; set; }
+
+        /// <summary>
+        /// The metadata of the model
+        /// </summary>
+        public object Metadata { get; set; }
+
+        /// <summary>
         /// Whether this is a partial suggestion being streamed
         /// </summary>
         public bool IsPartial { get; set; }

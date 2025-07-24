@@ -602,7 +602,7 @@ namespace OllamaAssistant.Services.Implementation
     // Supporting classes (simplified implementations)
     internal class KeyboardShortcutManager : IDisposable
     {
-        private readonly Dictionary<string, ShortcutBinding> _shortcuts = new();
+        private readonly Dictionary<string, ShortcutBinding> _shortcuts
         
         public int RegisteredShortcutCount => _shortcuts.Count;
         

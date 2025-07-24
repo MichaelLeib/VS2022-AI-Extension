@@ -1083,7 +1083,7 @@ Refactoring suggestions:",
     public class ModelConfiguration
     {
         public string ModelName { get; set; }
-        public Dictionary<string, object> Parameters { get; set; } = new();
+        public Dictionary<string, object> Parameters { get; set; }
         public ModelOptimization OptimizedFor { get; set; }
         public int ContextLength { get; set; }
         public string Description { get; set; }
@@ -1100,7 +1100,7 @@ Refactoring suggestions:",
         public string Name { get; set; }
         public string Description { get; set; }
         public string Template { get; set; }
-        public List<string> Variables { get; set; } = new();
+        public List<string> Variables { get; set; }
         public TemplateCategory Category { get; set; }
         public bool IsBuiltIn { get; set; }
     }
@@ -1113,7 +1113,7 @@ Refactoring suggestions:",
         public int MaxTokens { get; set; } = 4096;
         public int ReservedTokens { get; set; } = 512;
         public ContextStrategy ContextStrategy { get; set; } = ContextStrategy.Balanced;
-        public Dictionary<string, double> PriorityWeights { get; set; } = new();
+        public Dictionary<string, double> PriorityWeights { get; set; }
     }
 
     /// <summary>
@@ -1159,10 +1159,10 @@ Refactoring suggestions:",
         public bool Success { get; set; }
         public string ErrorMessage { get; set; }
         public DateTime ImportDate { get; set; }
-        public List<string> ImportedModelConfigurations { get; set; } = new();
-        public List<string> ImportedPromptTemplates { get; set; } = new();
+        public List<string> ImportedModelConfigurations { get; set; }
+        public List<string> ImportedPromptTemplates { get; set; }
         public bool ImportedContextWindowConfig { get; set; }
-        public List<string> Warnings { get; set; } = new();
+        public List<string> Warnings { get; set; }
     }
 
     /// <summary>

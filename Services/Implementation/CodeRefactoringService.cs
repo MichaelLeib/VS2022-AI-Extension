@@ -165,7 +165,7 @@ namespace OllamaAssistant.Services.Implementation
         private int _totalSuggestions = 0;
         private int _appliedSuggestions = 0;
         private double _averageAnalysisTime = 0;
-        private readonly Dictionary<RefactoringType, int> _refactoringTypeCounters = new();
+        private readonly Dictionary<RefactoringType, int> _refactoringTypeCounters
         #endregion
 
         #region Private Methods

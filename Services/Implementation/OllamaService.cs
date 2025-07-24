@@ -429,7 +429,7 @@ namespace OllamaAssistant.Services.Implementation
 
                 return new ModelInfo
                 {
-                    Name = _settingsService.OllamaModel,
+                    ModelName = _settingsService.OllamaModel,
                     Version = versionResponse?.Version ?? "unknown",
                     Description = currentModel != null ? $"Size: {FormatSize(currentModel.Size)}" : "Model information unavailable",
                     MaxContextSize = EstimateContextSize(_settingsService.OllamaModel),
@@ -442,12 +442,9 @@ namespace OllamaAssistant.Services.Implementation
                 System.Diagnostics.Debug.WriteLine($"Error getting model info: {ex.Message}");
                 return new ModelInfo
                 {
-                    Name = _settingsService.OllamaModel,
-                    Version = "unknown",
-                    Description = "Model information unavailable",
+                    ModelName = _settingsService.OllamaModel,
                     MaxContextSize = 2048,
                     SupportsCodeCompletion = true,
-                    ParameterCount = "unknown"
                 };
             }
         }

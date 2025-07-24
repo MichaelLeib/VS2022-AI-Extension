@@ -56,22 +56,6 @@ namespace OllamaAssistant.Models
     }
 
     /// <summary>
-    /// Information about indentation style
-    /// </summary>
-    public class IndentationInfo
-    {
-        /// <summary>
-        /// Whether the code uses spaces for indentation
-        /// </summary>
-        public bool UsesSpaces { get; set; } = true;
-
-        /// <summary>
-        /// Size of indentation (spaces or tab width)
-        /// </summary>
-        public int Size { get; set; } = 4;
-    }
-
-    /// <summary>
     /// Represents project context information
     /// </summary>
     public class ProjectContext
@@ -95,88 +79,6 @@ namespace OllamaAssistant.Models
         /// Project dependencies
         /// </summary>
         public List<string> Dependencies { get; set; } = new List<string>();
-    }
-
-    /// <summary>
-    /// Jump recommendation from AI
-    /// </summary>
-    public class JumpRecommendation
-    {
-        /// <summary>
-        /// Direction to jump
-        /// </summary>
-        public JumpDirection Direction { get; set; }
-
-        /// <summary>
-        /// Target line number
-        /// </summary>
-        public int TargetLine { get; set; }
-
-        /// <summary>
-        /// Target column number
-        /// </summary>
-        public int TargetColumn { get; set; }
-
-        /// <summary>
-        /// Confidence score (0.0 to 1.0)
-        /// </summary>
-        public double Confidence { get; set; }
-
-        /// <summary>
-        /// Reason for the jump recommendation
-        /// </summary>
-        public string Reason { get; set; } = string.Empty;
-
-        /// <summary>
-        /// File path for the jump target
-        /// </summary>
-        public string FilePath { get; set; } = string.Empty;
-    }
-
-    /// <summary>
-    /// Direction for cursor jumps
-    /// </summary>
-    public enum JumpDirection
-    {
-        /// <summary>
-        /// No jump recommended
-        /// </summary>
-        None,
-
-        /// <summary>
-        /// Jump up in the file
-        /// </summary>
-        Up,
-
-        /// <summary>
-        /// Jump down in the file
-        /// </summary>
-        Down,
-
-        /// <summary>
-        /// Jump to beginning of line
-        /// </summary>
-        LineStart,
-
-        /// <summary>
-        /// Jump to end of line
-        /// </summary>
-        LineEnd,
-
-        /// <summary>
-        /// Jump to different file
-        /// </summary>
-        File,
-
-        /// <summary>
-        /// Jump to method definition
-        /// </summary>
-        MethodDefinition,
-
-        /// <summary>
-        /// Jump to method implementation
-        /// </summary>
-        MethodImplementation
     }
 
     /// <summary>
@@ -271,102 +173,6 @@ namespace OllamaAssistant.Models
         public string QuantizationLevel { get; set; } = string.Empty;
     }
 
-    /// <summary>
-    /// Response from Ollama API
-    /// </summary>
-    public class OllamaResponse
-    {
-        /// <summary>
-        /// Model used for the response
-        /// </summary>
-        public string Model { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Response text
-        /// </summary>
-        public string Response { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Whether the response is complete
-        /// </summary>
-        public bool Done { get; set; }
-
-        /// <summary>
-        /// Context tokens
-        /// </summary>
-        public int[] Context { get; set; } = Array.Empty<int>();
-
-        /// <summary>
-        /// Total duration in nanoseconds
-        /// </summary>
-        public long TotalDuration { get; set; }
-
-        /// <summary>
-        /// Load duration in nanoseconds
-        /// </summary>
-        public long LoadDuration { get; set; }
-
-        /// <summary>
-        /// Prompt evaluation count
-        /// </summary>
-        public int PromptEvalCount { get; set; }
-
-        /// <summary>
-        /// Prompt evaluation duration in nanoseconds
-        /// </summary>
-        public long PromptEvalDuration { get; set; }
-
-        /// <summary>
-        /// Evaluation count
-        /// </summary>
-        public int EvalCount { get; set; }
-
-        /// <summary>
-        /// Evaluation duration in nanoseconds
-        /// </summary>
-        public long EvalDuration { get; set; }
-    }
-
-    /// <summary>
-    /// Cursor history entry
-    /// </summary>
-    public class CursorHistoryEntry
-    {
-        /// <summary>
-        /// File path
-        /// </summary>
-        public string FilePath { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Line number
-        /// </summary>
-        public int LineNumber { get; set; }
-
-        /// <summary>
-        /// Column number
-        /// </summary>
-        public int ColumnNumber { get; set; }
-
-        /// <summary>
-        /// Timestamp
-        /// </summary>
-        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-
-        /// <summary>
-        /// Context around the cursor
-        /// </summary>
-        public string Context { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Project name
-        /// </summary>
-        public string ProjectName { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Additional metadata
-        /// </summary>
-        public Dictionary<string, object> Metadata { get; set; } = new Dictionary<string, object>();
-    }
 
     /// <summary>
     /// History statistics
@@ -397,26 +203,5 @@ namespace OllamaAssistant.Models
         /// File activity distribution
         /// </summary>
         public Dictionary<string, int> FileActivity { get; set; } = new Dictionary<string, int>();
-    }
-
-    /// <summary>
-    /// Settings changed event arguments
-    /// </summary>
-    public class SettingsChangedEventArgs : EventArgs
-    {
-        /// <summary>
-        /// Name of the setting that changed
-        /// </summary>
-        public string SettingName { get; set; } = string.Empty;
-
-        /// <summary>
-        /// New value
-        /// </summary>
-        public object NewValue { get; set; } = null!;
-
-        /// <summary>
-        /// Old value
-        /// </summary>
-        public object OldValue { get; set; } = null!;
     }
 }

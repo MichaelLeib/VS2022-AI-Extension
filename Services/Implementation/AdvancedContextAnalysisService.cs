@@ -749,10 +749,10 @@ namespace OllamaAssistant.Services.Implementation
         public string ContainingMethod { get; set; }
         public string ContainingClass { get; set; }
         public string ContainingNamespace { get; set; }
-        public List<string> LineTokens { get; set; } = new();
-        public List<SymbolInfo> AvailableSymbols { get; set; } = new();
-        public List<ContextLine> SurroundingContext { get; set; } = new();
-        public List<string> AnalysisErrors { get; set; } = new();
+        public List<string> LineTokens { get; set; }
+        public List<SymbolInfo> AvailableSymbols { get; set; }
+        public List<ContextLine> SurroundingContext { get; set; }
+        public List<string> AnalysisErrors { get; set; }
     }
 
     /// <summary>
@@ -794,8 +794,8 @@ namespace OllamaAssistant.Services.Implementation
     public class CodePatternAnalysis
     {
         public string FilePath { get; set; }
-        public List<CodePattern> DetectedPatterns { get; set; } = new();
-        public List<string> AnalysisErrors { get; set; } = new();
+        public List<CodePattern> DetectedPatterns { get; set; }
+        public List<string> AnalysisErrors { get; set; }
     }
 
     /// <summary>
@@ -1060,8 +1060,8 @@ namespace OllamaAssistant.Services.Implementation
 
     internal class ContextCache : IDisposable
     {
-        private readonly Dictionary<string, AdvancedCodeContext> _cache = new();
-        private readonly Dictionary<string, DateTime> _timestamps = new();
+        private readonly Dictionary<string, AdvancedCodeContext> _cache
+        private readonly Dictionary<string, DateTime> _timestamps
         private int _hits;
         private int _requests;
 
@@ -1101,33 +1101,33 @@ namespace OllamaAssistant.Services.Implementation
     public class ProjectContextInfo
     {
         public string ProjectRoot { get; set; }
-        public List<string> RelatedFiles { get; set; } = new();
+        public List<string> RelatedFiles { get; set; }
         public string ProjectType { get; set; }
     }
 
     public class DependencyContextInfo
     {
-        public List<string> DirectDependencies { get; set; } = new();
-        public List<string> IndirectDependencies { get; set; } = new();
-        public List<string> UnresolvedReferences { get; set; } = new();
+        public List<string> DirectDependencies { get; set; }
+        public List<string> IndirectDependencies { get; set; }
+        public List<string> UnresolvedReferences { get; set; }
     }
 
     public class LanguageOptimizedContext
     {
         public string Language { get; set; }
-        public List<string> OptimizedElements { get; set; } = new();
+        public List<string> OptimizedElements { get; set; }
     }
 
     public class ProjectSymbolMap
     {
         public string ProjectPath { get; set; }
-        public Dictionary<string, List<SymbolInfo>> Symbols { get; set; } = new();
+        public Dictionary<string, List<SymbolInfo>> Symbols { get; set; }
     }
 
     public class DependencyAnalysisResult
     {
         public string FilePath { get; set; }
-        public List<string> Dependencies { get; set; } = new();
+        public List<string> Dependencies { get; set; }
     }
 
     public class RelatedCodeSection
