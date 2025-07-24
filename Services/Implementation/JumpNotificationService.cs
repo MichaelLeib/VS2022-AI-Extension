@@ -235,38 +235,49 @@ namespace OllamaAssistant.Services.Implementation
             var notificationWidth = 200; // Estimated notification width
             var notificationHeight = 60; // Estimated notification height
             
-            return direction switch
+            switch (direction)
             {
-                JumpDirection.Up => _options.UpwardJumpPosition switch
-                {
-                    NotificationPosition.Bottom => new Point(
-                        textViewBounds.Left + (textViewBounds.Width - notificationWidth) / 2,
-                        textViewBounds.Bottom - notificationHeight - 10),
-                    NotificationPosition.Top => new Point(
-                        textViewBounds.Left + (textViewBounds.Width - notificationWidth) / 2,
-                        textViewBounds.Top + 10),
-                    NotificationPosition.Center => new Point(
-                        textViewBounds.Left + (textViewBounds.Width - notificationWidth) / 2,
-                        textViewBounds.Top + (textViewBounds.Height - notificationHeight) / 2),
-                    _ => new Point(textViewBounds.Left + 10, textViewBounds.Bottom - notificationHeight - 10)
-                },
+                case JumpDirection.Up:
+                    switch (_options.UpwardJumpPosition)
+                    {
+                        case NotificationPosition.Bottom:
+                            return new Point(
+                                textViewBounds.Left + (textViewBounds.Width - notificationWidth) / 2,
+                                textViewBounds.Bottom - notificationHeight - 10);
+                        case NotificationPosition.Top:
+                            return new Point(
+                                textViewBounds.Left + (textViewBounds.Width - notificationWidth) / 2,
+                                textViewBounds.Top + 10);
+                        case NotificationPosition.Center:
+                            return new Point(
+                                textViewBounds.Left + (textViewBounds.Width - notificationWidth) / 2,
+                                textViewBounds.Top + (textViewBounds.Height - notificationHeight) / 2);
+                        default:
+                            return new Point(textViewBounds.Left + 10, textViewBounds.Bottom - notificationHeight - 10);
+                    }
 
-                JumpDirection.Down => _options.DownwardJumpPosition switch
-                {
-                    NotificationPosition.Top => new Point(
-                        textViewBounds.Left + (textViewBounds.Width - notificationWidth) / 2,
-                        textViewBounds.Top + 10),
-                    NotificationPosition.Bottom => new Point(
-                        textViewBounds.Left + (textViewBounds.Width - notificationWidth) / 2,
-                        textViewBounds.Bottom - notificationHeight - 10),
-                    NotificationPosition.Center => new Point(
-                        textViewBounds.Left + (textViewBounds.Width - notificationWidth) / 2,
-                        textViewBounds.Top + (textViewBounds.Height - notificationHeight) / 2),
-                    _ => new Point(textViewBounds.Left + 10, textViewBounds.Top + 10)
-                },
+                case JumpDirection.Down:
+                    switch (_options.DownwardJumpPosition)
+                    {
+                        case NotificationPosition.Top:
+                            return new Point(
+                                textViewBounds.Left + (textViewBounds.Width - notificationWidth) / 2,
+                                textViewBounds.Top + 10);
+                        case NotificationPosition.Bottom:
+                            return new Point(
+                                textViewBounds.Left + (textViewBounds.Width - notificationWidth) / 2,
+                                textViewBounds.Bottom - notificationHeight - 10);
+                        case NotificationPosition.Center:
+                            return new Point(
+                                textViewBounds.Left + (textViewBounds.Width - notificationWidth) / 2,
+                                textViewBounds.Top + (textViewBounds.Height - notificationHeight) / 2);
+                        default:
+                            return new Point(textViewBounds.Left + 10, textViewBounds.Top + 10);
+                    }
 
-                _ => new Point(textViewBounds.Left + 10, textViewBounds.Top + 10)
-            };
+                default:
+                    return new Point(textViewBounds.Left + 10, textViewBounds.Top + 10);
+            }
         }
 
         private async Task AnimateNotificationAppearanceAsync(JumpNotificationWindow notification)
