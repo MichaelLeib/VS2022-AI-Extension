@@ -191,7 +191,7 @@ namespace OllamaAssistant.Services.Implementation
             if (_disposed || string.IsNullOrEmpty(filePath))
                 return;
 
-            options ??= new ConfigurationExportOptions();
+            options = new ConfigurationExportOptions();
 
             var exportData = new ConfigurationExport
             {

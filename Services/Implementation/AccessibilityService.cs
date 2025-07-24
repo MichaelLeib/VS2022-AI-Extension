@@ -128,7 +128,6 @@ namespace OllamaAssistant.Services.Implementation
                 HighContrastEnabled = _themeManager.IsHighContrastActive,
                 AccessibilityFeaturesEnabled = _features.Count,
                 FocusManagementActive = _focusManager.IsActive,
-                ComplianceLevel = CalculateComplianceLevel(),
                 LastAccessibilityCheck = DateTime.UtcNow
             };
         }
@@ -159,7 +158,6 @@ namespace OllamaAssistant.Services.Implementation
 
                 // Calculate overall compliance score
                 report.OverallScore = CalculateOverallComplianceScore(report);
-                report.ComplianceLevel = DetermineComplianceLevel(report.OverallScore);
 
                 report.Timestamp = DateTime.UtcNow;
             }
@@ -278,8 +276,6 @@ namespace OllamaAssistant.Services.Implementation
         {
             try
             {
-                // Check for keyboard navigation preferences
-                var keyboardNavigation = SystemParameters.KeyboardNavigation;
                 
                 // Check for animation preferences
                 var clientAreaAnimation = SystemParameters.ClientAreaAnimation;
@@ -463,53 +459,12 @@ namespace OllamaAssistant.Services.Implementation
         /// </summary>
         private int CalculateOverallComplianceScore(AccessibilityComplianceReport report)
         {
-            var scores = new[]
-            {
-                report.KeyboardAccessibility.Score,
-                report.ScreenReaderSupport.Score,
-                report.ColorContrast.Score,
-                report.FocusManagement.Score
-            };
+            var score = report.KeyboardAccessibility.Score +
+                report.ScreenReaderSupport.Score +
+                report.ColorContrast.Score +
+                report.FocusManagement.Score;
 
-            return (int)scores.Average();
-        }
-
-        /// <summary>
-        /// Determines compliance level based on score
-        /// </summary>
-        private AccessibilityComplianceLevel DetermineComplianceLevel(int score)
-        {
-            return score switch
-            {
-                >= 95 => AccessibilityComplianceLevel.WCAG_AAA,
-                >= 80 => AccessibilityComplianceLevel.WCAG_AA,
-                >= 60 => AccessibilityComplianceLevel.WCAG_A,
-                _ => AccessibilityComplianceLevel.NonCompliant
-            };
-        }
-
-        /// <summary>
-        /// Calculates basic compliance level
-        /// </summary>
-        private AccessibilityComplianceLevel CalculateComplianceLevel()
-        {
-            var enabledFeatures = 0;
-            var totalFeatures = _features.Count;
-
-            foreach (var feature in _features.Values)
-            {
-                if (feature.IsEnabled)
-                    enabledFeatures++;
-            }
-
-            var percentage = (double)enabledFeatures / totalFeatures;
-
-            return percentage switch
-            {
-                >= 0.9 => AccessibilityComplianceLevel.WCAG_AA,
-                >= 0.7 => AccessibilityComplianceLevel.WCAG_A,
-                _ => AccessibilityComplianceLevel.NonCompliant
-            };
+            return score / 4;
         }
 
         public void Dispose()
@@ -602,7 +557,7 @@ namespace OllamaAssistant.Services.Implementation
     // Supporting classes (simplified implementations)
     internal class KeyboardShortcutManager : IDisposable
     {
-        private readonly Dictionary<string, ShortcutBinding> _shortcuts
+        private readonly Dictionary<string, ShortcutBinding> _shortcuts;
         
         public int RegisteredShortcutCount => _shortcuts.Count;
         
