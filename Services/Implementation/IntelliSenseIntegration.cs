@@ -153,7 +153,7 @@ namespace OllamaAssistant.Services.Implementation
             }
         }
 
-        public async Task ShowStreamingSuggestionAsync(IAsyncEnumerable<CodeSuggestion> suggestionStream)
+        public async Task ShowStreamingSuggestionAsync(IEnumerable<CodeSuggestion> suggestionStream)
         {
             if (suggestionStream == null)
                 return;
@@ -163,7 +163,7 @@ namespace OllamaAssistant.Services.Implementation
                 CodeSuggestion currentSuggestion = null;
                 var cancellationToken = CancellationToken.None;
 
-                await foreach (var partialSuggestion in suggestionStream.WithCancellation(cancellationToken))
+                foreach (var partialSuggestion in suggestionStream)
                 {
                     await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
