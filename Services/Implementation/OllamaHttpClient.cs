@@ -15,7 +15,7 @@ namespace OllamaAssistant.Services.Implementation
     /// <summary>
     /// HTTP client for communicating with Ollama API with retry logic and connection pooling
     /// </summary>
-    public class OllamaHttpClient : IOllamaHttpClient, IDisposable
+    public class OllamaHttpClient: IDisposable
     {
         private readonly HttpClient _httpClient;
         private readonly SemaphoreSlim _connectionSemaphore;
@@ -669,31 +669,6 @@ namespace OllamaAssistant.Services.Implementation
             return await IsAvailableAsync(cancellationToken);
         }
 
-        /// <summary>
-        /// Gets health status of the Ollama server
-        /// </summary>
-        public async Task<HealthStatus> GetHealthStatusAsync(CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                var ollamaHealthStatus = await CheckHealthAsync(cancellationToken);
-                return new HealthStatus
-                {
-                    IsHealthy = ollamaHealthStatus?.IsHealthy ?? false,
-                    StatusMessage = ollamaHealthStatus?.Message ?? "Unknown status",
-                    Timestamp = DateTime.UtcNow
-                };
-            }
-            catch (Exception ex)
-            {
-                return new HealthStatus
-                {
-                    IsHealthy = false,
-                    StatusMessage = $"Health check failed: {ex.Message}",
-                    Timestamp = DateTime.UtcNow
-                };
-            }
-        }
 
         /// <summary>
         /// Sets the base URL for the Ollama server

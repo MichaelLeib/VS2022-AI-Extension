@@ -153,7 +153,8 @@ namespace OllamaAssistant.Services.Implementation
             }
         }
 
-        public async Task ShowStreamingSuggestion¡sync(IEnumerable<CodeSuggestion> suggestionStream)
+
+        public async Task ShowStreamingSuggestionAsync(IEnumerable<CodeSuggestion> suggestionStream)
         {
             if (suggestionStream == null)
                 return;

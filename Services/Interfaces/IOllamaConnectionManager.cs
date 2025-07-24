@@ -46,10 +46,9 @@ namespace OllamaAssistant.Services.Interfaces
         Task StopMonitoringAsync();
 
         /// <summary>
-        /// Performs an immediate health check
+        /// Checks if the system should attempt a connection based on retry logic
         /// </summary>
-        Task<OllamaHealthStatus> CheckHealthAsync(CancellationToken cancellationToken = default);
-
+        bool ShouldAttemptConnection();
         /// <summary>
         /// Attempts to reconnect to the Ollama server
         /// </summary>

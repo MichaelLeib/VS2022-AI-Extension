@@ -1,4 +1,5 @@
 using System;
+using System.CodeDom;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio;
@@ -98,7 +99,7 @@ namespace OllamaAssistant.Services.Implementation
                         _currentLabel = text;
                         
                         // Start animation
-                        _statusBar.Animation(1, ref VSConstants.SBAI_General);
+                        _statusBar.Animation(1, null);
                     }
                 }
             }
@@ -131,7 +132,7 @@ namespace OllamaAssistant.Services.Implementation
                         _currentLabel = text;
                         
                         // Stop animation
-                        _statusBar.Animation(0, ref VSConstants.SBAI_General);
+                        _statusBar.Animation(0, null);
                         
                         // Clear after 3 seconds
                         Task.Delay(3000).ContinueWith(_ => ClearAsync());
@@ -167,7 +168,7 @@ namespace OllamaAssistant.Services.Implementation
                         _currentLabel = text;
                         
                         // Stop animation
-                        _statusBar.Animation(0, ref VSConstants.SBAI_General);
+                        _statusBar.Animation(0, null);
                         
                         // Clear after 5 seconds (longer for errors)
                         Task.Delay(5000).ContinueWith(_ => ClearAsync());
@@ -200,9 +201,10 @@ namespace OllamaAssistant.Services.Implementation
                     {
                         _currentProgress = current;
                         _currentLabel = label;
+                        uint asdf = 1;
                         
                         // Set progress bar
-                        _statusBar.Progress(ref _currentProgress, label, current, total);
+                        _statusBar.Progress(ref asdf, (int)_currentProgress, label, current, total);
                         
                         // Also update text
                         var progressText = $"{label} ({current}/{total})";
@@ -235,9 +237,10 @@ namespace OllamaAssistant.Services.Implementation
                     if (_statusBar != null)
                     {
                         _currentProgress = current;
+                        uint asdf = 1;
                         
                         // Update progress bar
-                        _statusBar.Progress(ref _currentProgress, _currentLabel, current, total);
+                        _statusBar.Progress(ref asdf, (int)_currentProgress, _currentLabel, current, total);
                         
                         // Update text
                         var progressText = $"{_currentLabel} ({current}/{total})";
@@ -270,7 +273,8 @@ namespace OllamaAssistant.Services.Implementation
                     if (_statusBar != null)
                     {
                         _currentProgress = 0;
-                        _statusBar.Progress(ref _currentProgress, "", 0, 0);
+                        uint asdf = 1;
+                        _statusBar.Progress(ref asdf, (int)_currentProgress, "", 0, 0);
                     }
                 }
             }
@@ -303,7 +307,7 @@ namespace OllamaAssistant.Services.Implementation
                         _currentProgress = 0;
                         
                         // Stop any animations
-                        _statusBar.Animation(0, ref VSConstants.SBAI_General);
+                        _statusBar.Animation(0, null);
                     }
                 }
             }
@@ -388,5 +392,15 @@ namespace OllamaAssistant.Services.Implementation
                 // Ignore disposal errors
             }
         }
+    }
+
+    public static class StatusBarAnimationConstants
+    {
+        public const short General = 1;
+        public const short Find = 2;
+        public const short Build = 3;
+        public const short Deploy = 4;
+        public const short Sync = 5;
+        public const short DeployNoWait = 6;
     }
 }

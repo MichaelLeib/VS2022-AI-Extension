@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
@@ -39,7 +40,20 @@ namespace OllamaAssistant.Services.Implementation
         #region Events
 
         public event EventHandler<TextChangedEventArgs> TextChanged;
-        public event EventHandler<CaretPositionChangedEventArgs> CaretPositionChanged;
+        public event EventHandler<Microsoft.VisualStudio.Text.Editor.CaretPositionChangedEventArgs> CaretPositionChanged;
+
+        event EventHandler<Interfaces.CaretPositionChangedEventArgs> ITextViewService.CaretPositionChanged
+        {
+            add
+            {
+                throw new NotImplementedException();
+            }
+
+            remove
+            {
+                throw new NotImplementedException();
+            }
+        }
 
         #endregion
 
@@ -226,8 +240,7 @@ namespace OllamaAssistant.Services.Implementation
         /// </summary>
         private async Task<IWpfTextView> GetActiveTextViewWithRetryAsync()
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             for (int attempt = 0; attempt < 3; attempt++)
             {
                 var textView = GetActiveTextView();
@@ -297,20 +310,32 @@ namespace OllamaAssistant.Services.Implementation
                 var typeName = contentType.TypeName.ToLowerInvariant();
 
                 // Map VS content types to language names
-                return typeName switch
+                switch (typeName)
                 {
-                    "csharp" => "csharp",
-                    "c/c++" => "cpp",
-                    "javascript" => "javascript",
-                    "typescript" => "typescript",
-                    "python" => "python",
-                    "java" => "java",
-                    "xml" => "xml",
-                    "json" => "json",
-                    "html" => "html",
-                    "css" => "css",
-                    "sql" => "sql",
-                    _ => DetectLanguageFromFilePath(GetCurrentFilePath()) ?? "text"
+                    case "csharp":
+                        return "csharp";
+                    case "c/c++":
+                        return "cpp";
+                    case "javascript":
+                        return "javascript";
+                    case "typescript":
+                        return "typescript";
+                    case "python":
+                        return "python";
+                    case "java":
+                        return "java";
+                    case "xml":
+                        return "xml";
+                    case "json":
+                        return "json";
+                    case "html":
+                        return "html";
+                    case "css":
+                        return "css";
+                    case "sql":
+                        return "sql";
+                    default:
+                        return DetectLanguageFromFilePath(GetCurrentFilePath() ?? "text");
                 };
             }
             catch
@@ -342,8 +367,10 @@ namespace OllamaAssistant.Services.Implementation
                 var snapshotPoint = new SnapshotPoint(snapshot, targetPosition);
                 textView.Caret.MoveTo(snapshotPoint);
                 
+                var snapShotSpan = new SnapshotSpan(snapshot, snapshotPoint, 0);
+
                 // Ensure the caret is visible
-                textView.ViewScroller.EnsureSpanVisible(new VirtualSnapshotSpan(snapshotPoint, snapshotPoint));
+                textView.ViewScroller.EnsureSpanVisible(snapShotSpan);
             }
             catch (Exception ex)
             {
@@ -480,7 +507,7 @@ namespace OllamaAssistant.Services.Implementation
             }
         }
 
-        private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
+        private void OnCaretPositionChanged(object sender, Microsoft.VisualStudio.Text.Editor.CaretPositionChangedEventArgs e)
         {
             try
             {
@@ -496,7 +523,7 @@ namespace OllamaAssistant.Services.Implementation
 
                 try
                 {
-                    CaretPositionChanged?.Invoke(this, new Services.Interfaces.CaretPositionChangedEventArgs
+                    CaretPositionChanged?.Invoke(this, CaretPositionChangedEventArgs
                     {
                         OldPosition = e.OldPosition.BufferPosition,
                         NewPosition = e.NewPosition.BufferPosition,
@@ -632,36 +659,72 @@ namespace OllamaAssistant.Services.Implementation
                 return null;
 
             var extension = Path.GetExtension(filePath).ToLowerInvariant();
-            return extension switch
+            switch (extension)
             {
-                ".cs" => "csharp",
-                ".cpp" or ".cc" or ".cxx" => "cpp",
-                ".c" => "c",
-                ".h" or ".hpp" => "c_header",
-                ".js" => "javascript",
-                ".ts" => "typescript",
-                ".py" => "python",
-                ".java" => "java",
-                ".php" => "php",
-                ".rb" => "ruby",
-                ".go" => "go",
-                ".rs" => "rust",
-                ".swift" => "swift",
-                ".kt" => "kotlin",
-                ".scala" => "scala",
-                ".vb" => "vbnet",
-                ".fs" => "fsharp",
-                ".xml" or ".xaml" => "xml",
-                ".json" => "json",
-                ".yaml" or ".yml" => "yaml",
-                ".html" or ".htm" => "html",
-                ".css" => "css",
-                ".scss" or ".sass" => "scss",
-                ".sql" => "sql",
-                ".ps1" => "powershell",
-                ".sh" => "bash",
-                ".bat" or ".cmd" => "batch",
-                _ => null
+                case ".cs":
+                    return "csharp";
+                case ".cpp":
+                case ".cc":
+                case ".cxx":
+                    return "cpp";
+                case ".c":
+                    return "c";
+                case ".h":
+                case ".hpp":
+                    return "c_header";
+                case ".js":
+                    return "javascript";
+                case ".ts":
+                    return "typescript";
+                case ".py":
+                    return "python";
+                case ".java":
+                    return "java";
+                case ".php":
+                    return "php";
+                case ".rb":
+                    return "ruby";
+                case ".go":
+                    return "go";
+                case ".rs":
+                    return "rust";
+                case ".swift":
+                    return "swift";
+                case ".kt":
+                    return "kotlin";
+                case ".scala":
+                    return "scala";
+                case ".vb":
+                    return "vbnet";
+                case ".fs":
+                    return "fsharp";
+                case ".xml":
+                case ".xaml":
+                    return "xml";
+                case ".json":
+                    return "json";
+                case ".yaml":
+                case ".yml":
+                    return "yaml";
+                case ".html":
+                case ".htm":
+                    return "html";
+                case ".css":
+                    return "css";
+                case ".scss":
+                case ".sass":
+                    return "scss";
+                case ".sql":
+                    return "sql";
+                case ".ps1":
+                    return "powershell";
+                case ".sh":
+                    return "bash";
+                case ".bat":
+                case ".cmd":
+                    return "batch";
+                default:
+                    return null;
             };
         }
 

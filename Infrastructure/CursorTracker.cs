@@ -35,7 +35,7 @@ namespace OllamaAssistant.Infrastructure
             _logger = logger;
 
             // Create debounce service for cursor movements (250ms delay)
-            _debounceService = new DebounceService(250);
+            _debounceService = new DebounceService();
 
             SubscribeToEvents();
         }

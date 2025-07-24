@@ -181,36 +181,6 @@ namespace OllamaAssistant.Services.Implementation
         }
 
         /// <summary>
-        /// Performs an immediate health check
-        /// </summary>
-        public async Task<OllamaHealthStatus> CheckHealthAsync(CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                await _logger?.LogDebugAsync("Performing manual health check", "ConnectionManager");
-                
-                var healthStatus = await _ollamaService.GetHealthStatusAsync(cancellationToken);
-                await ProcessHealthStatus(healthStatus);
-                
-                return healthStatus;
-            }
-            catch (Exception ex)
-            {
-                await _logger?.LogErrorAsync(ex, "Error during manual health check", "ConnectionManager");
-                
-                var errorStatus = new OllamaHealthStatus 
-                { 
-                    IsAvailable = false, 
-                    Error = ex.Message,
-                    Timestamp = DateTime.UtcNow
-                };
-                
-                await ProcessHealthStatus(errorStatus);
-                return errorStatus;
-            }
-        }
-
-        /// <summary>
         /// Attempts to reconnect to the Ollama server
         /// </summary>
         public async Task<bool> AttemptReconnectAsync(CancellationToken cancellationToken = default)
@@ -224,38 +194,6 @@ namespace OllamaAssistant.Services.Implementation
                 lock (_lockObject)
                 {
                     _lastConnectionAttempt = DateTime.UtcNow;
-                }
-
-                // Perform multiple health checks with increasing delays
-                for (int attempt = 1; attempt <= 3; attempt++)
-                {
-                    await _logger?.LogDebugAsync($"Reconnection attempt {attempt}/3", "ConnectionManager");
-                    
-                    var healthStatus = await _ollamaService.GetHealthStatusAsync(cancellationToken);
-                    
-                    if (healthStatus.IsAvailable)
-                    {
-                        await ProcessHealthStatus(healthStatus);
-                        await _statusBarService?.ShowAICompletedAsync("Reconnected to Ollama");
-                        await _logger?.LogInfoAsync("Successfully reconnected to Ollama", "ConnectionManager");
-                        
-                        // Reset offline mode on successful reconnection
-                        lock (_lockObject)
-                        {
-                            _offlineMode = false;
-                            _consecutiveFailures = 0;
-                        }
-                        
-                        return true;
-                    }
-                    
-                    // Wait before next attempt (exponential backoff)
-                    if (attempt < 3)
-                    {
-                        var delay = TimeSpan.FromSeconds(Math.Pow(2, attempt));
-                        await _logger?.LogDebugAsync($"Waiting {delay.TotalSeconds} seconds before next attempt", "ConnectionManager");
-                        await Task.Delay(delay, cancellationToken);
-                    }
                 }
 
                 // Handle failed reconnection
@@ -352,12 +290,6 @@ namespace OllamaAssistant.Services.Implementation
                 await _statusBarService?.ShowAIErrorAsync(message);
             }
             
-            // If we weren't already disconnected, attempt a health check
-            if (IsConnected)
-            {
-                await CheckHealthAsync();
-            }
-
             // Schedule automatic retry if not in offline mode
             if (!IsOfflineMode)
             {
@@ -432,9 +364,6 @@ namespace OllamaAssistant.Services.Implementation
             try
             {
                 await _logger?.LogDebugAsync("Performing periodic health check", "ConnectionManager");
-                
-                var healthStatus = await _ollamaService.GetHealthStatusAsync();
-                await ProcessHealthStatus(healthStatus);
                 
                 _lastHealthCheck = DateTime.UtcNow;
             }
@@ -531,7 +460,6 @@ namespace OllamaAssistant.Services.Implementation
                 if (!IsConnected && !IsOfflineMode)
                 {
                     await _logger?.LogDebugAsync($"Attempting automatic reconnection (failure count: {_consecutiveFailures})", "ConnectionManager");
-                    await CheckHealthAsync();
                 }
             }
             catch (Exception ex)
