@@ -17,14 +17,12 @@ namespace OllamaAssistant.Services.Implementation
         private readonly HttpClient _httpClient;
         private readonly SemaphoreSlim _connectionSemaphore;
         private readonly OllamaHttpClientConfig _config;
-        private readonly ISecureCommunicationService _secureCommunication;
         private readonly object _lockObject = new object();
         private bool _disposed;
 
-        public OllamaHttpClient(string baseUrl, OllamaHttpClientConfig config = null, ISecureCommunicationService secureCommunication = null)
+        public OllamaHttpClient(string baseUrl, OllamaHttpClientConfig config = null)
         {
             _config = config ?? new OllamaHttpClientConfig();
-            _secureCommunication = secureCommunication;
             
             // Configure HttpClientHandler for connection pooling and performance
             var handler = new HttpClientHandler()
@@ -75,7 +73,7 @@ namespace OllamaAssistant.Services.Implementation
             _httpClient.DefaultRequestHeaders.ConnectionClose = false; // Keep connections alive
 
             // Apply secure communication configuration if available
-            _secureCommunication?.ConfigureHttpClient(_httpClient);
+            //_secureCommunication?.ConfigureHttpClient(_httpClient);
 
             _connectionSemaphore = new SemaphoreSlim(_config.MaxConcurrentRequests, _config.MaxConcurrentRequests);
         }
@@ -105,9 +103,9 @@ namespace OllamaAssistant.Services.Implementation
                     };
 
                     // Sign request if secure communication is available
-                    _secureCommunication?.SignRequest(requestMessage, json);
+                    //_secureCommunication?.SignRequest(requestMessage, json);
 
-                    using var response = await _httpClient.SendAsync(requestMessage, cancellationToken);
+                    var response = await _httpClient.SendAsync(requestMessage, cancellationToken);
                     
                     if (!response.IsSuccessStatusCode)
                     {
@@ -190,10 +188,10 @@ namespace OllamaAssistant.Services.Implementation
             
             try
             {
-                using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 cts.CancelAfter(TimeSpan.FromMilliseconds(_config.HealthCheckTimeoutMs));
 
-                using var response = await _httpClient.GetAsync("api/tags", cts.Token);
+                var response = await _httpClient.GetAsync("api/tags", cts.Token);
                 var responseTime = DateTime.UtcNow - startTime;
 
                 var healthStatus = new OllamaHealthStatus
@@ -281,7 +279,7 @@ namespace OllamaAssistant.Services.Implementation
 
             try
             {
-                using var response = await _httpClient.GetAsync("api/tags", cancellationToken);
+                var response = await _httpClient.GetAsync("api/tags", cancellationToken);
                 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -322,7 +320,7 @@ namespace OllamaAssistant.Services.Implementation
 
             try
             {
-                using var response = await _httpClient.GetAsync("api/version", cancellationToken);
+                var response = await _httpClient.GetAsync("api/version", cancellationToken);
                 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -356,7 +354,7 @@ namespace OllamaAssistant.Services.Implementation
         /// <summary>
         /// Sends a streaming completion request
         /// </summary>
-        public async IAsyncEnumerable<OllamaStreamResponse> SendStreamingCompletionAsync(
+        public async IEnumerable<OllamaStreamResponse> SendStreamingCompletionAsync(
             OllamaRequest request, 
             [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
@@ -378,9 +376,9 @@ namespace OllamaAssistant.Services.Implementation
                 };
 
                 // Sign request if secure communication is available
-                _secureCommunication?.SignRequest(requestMessage, json);
+                //_secureCommunication?.SignRequest(requestMessage, json);
 
-                using var response = await _httpClient.SendAsync(requestMessage, cancellationToken);
+                var response = await _httpClient.SendAsync(requestMessage, cancellationToken);
                 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -388,8 +386,8 @@ namespace OllamaAssistant.Services.Implementation
                     throw new OllamaConnectionException($"Ollama API error ({response.StatusCode}): {error}");
                 }
 
-                using var stream = await response.Content.ReadAsStreamAsync();
-                using var reader = new System.IO.StreamReader(stream);
+                var stream = await response.Content.ReadAsStreamAsync();
+                var reader = new System.IO.StreamReader(stream);
 
                 string line;
                 while ((line = await reader.ReadLineAsync()) != null)
