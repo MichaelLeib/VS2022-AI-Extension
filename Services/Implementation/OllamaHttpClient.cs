@@ -354,9 +354,9 @@ namespace OllamaAssistant.Services.Implementation
         /// <summary>
         /// Sends a streaming completion request
         /// </summary>
-        public async IEnumerable<OllamaStreamResponse> SendStreamingCompletionAsync(
+        public async Task<List<OllamaStreamResponse>> SendStreamingCompletionAsync(
             OllamaRequest request, 
-            [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default)
         {
             if (_disposed)
                 throw new ObjectDisposedException(nameof(OllamaHttpClient));
@@ -390,10 +390,11 @@ namespace OllamaAssistant.Services.Implementation
                 var reader = new System.IO.StreamReader(stream);
 
                 string line;
+                List<OllamaStreamResponse> responses = new List<OllamaStreamResponse>();
                 while ((line = await reader.ReadLineAsync()) != null)
                 {
                     if (cancellationToken.IsCancellationRequested)
-                        yield break;
+                        break;
 
                     if (!string.IsNullOrWhiteSpace(line))
                     {
@@ -408,12 +409,14 @@ namespace OllamaAssistant.Services.Implementation
                             continue;
                         }
 
-                        yield return streamResponse;
+                        responses.Add(streamResponse);
 
                         if (streamResponse.Done)
                             break;
                     }
                 }
+
+                return responses;
             }
             finally
             {
@@ -490,18 +493,20 @@ namespace OllamaAssistant.Services.Implementation
         /// </summary>
         private static bool IsRetryableStatusCode(HttpStatusCode statusCode)
         {
-            return statusCode switch
+            switch (statusCode)
             {
-                HttpStatusCode.InternalServerError => true,
-                HttpStatusCode.BadGateway => true,
-                HttpStatusCode.ServiceUnavailable => true,
-                HttpStatusCode.GatewayTimeout => true,
-                HttpStatusCode.RequestTimeout => true,
-                HttpStatusCode.TooManyRequests => true,
-                HttpStatusCode.InsufficientStorage => true,
-                HttpStatusCode.NotExtended => true,
-                _ => false
-            };
+                case HttpStatusCode.InternalServerError:
+                case HttpStatusCode.BadGateway:
+                case HttpStatusCode.ServiceUnavailable:
+                case HttpStatusCode.GatewayTimeout:
+                case HttpStatusCode.RequestTimeout:
+                case HttpStatusCode.TooManyRequests:
+                case HttpStatusCode.InsufficientStorage:
+                case HttpStatusCode.NotExtended:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         /// <summary>
