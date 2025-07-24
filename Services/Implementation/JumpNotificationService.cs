@@ -150,7 +150,7 @@ namespace OllamaAssistant.Services.Implementation
                     else
                     {
                         // Show new notification if none exists
-                        await ShowJumpNotificationAsync(recommendation);
+                        _ = ShowJumpNotificationAsync(recommendation);
                     }
                 }
             }
@@ -510,7 +510,8 @@ namespace OllamaAssistant.Services.Implementation
             var stackPanel = new StackPanel
             {
                 Orientation = Orientation.Vertical,
-                Spacing = 4
+                //Spacing = 4,
+
             };
 
             // Direction indicator
@@ -591,23 +592,30 @@ namespace OllamaAssistant.Services.Implementation
 
         private string GetDirectionText()
         {
-            return _recommendation.Direction switch
+            switch (_recommendation.Direction)
             {
-                JumpDirection.Up => "↑ Jump Up",
-                JumpDirection.Down => "↓ Jump Down",
-                _ => "→ Jump"
+                case JumpDirection.Up:
+                    return "↑ Jump Up";
+                case JumpDirection.Down:
+                    return "↓ Jump Down";
+                default:
+                    return "→ Jump";
             };
         }
 
         private string GetKeyDisplayName(string keyBinding = null)
         {
             var key = keyBinding ?? "Tab";
-            return key switch
+            switch (key)
             {
-                "Tab" => "Tab",
-                "Enter" => "Enter",
-                "Space" => "Space",
-                _ => key
+                case "Tab":
+                    return "Tab";
+                case "Enter":
+                    return "Enter";
+                case "Space":
+                    return "Space";
+                default:
+                    return key;
             };
         }
 
