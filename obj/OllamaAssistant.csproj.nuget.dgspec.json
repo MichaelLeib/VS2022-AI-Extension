@@ -1,0 +1,91 @@
+{
+  "format": 1,
+  "restore": {
+    "/Users/michaelleib/Development/AI-VSExt/OllamaAssistant.csproj": {}
+  },
+  "projects": {
+    "/Users/michaelleib/Development/AI-VSExt/OllamaAssistant.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/michaelleib/Development/AI-VSExt/OllamaAssistant.csproj",
+        "projectName": "OllamaAssistant",
+        "projectPath": "/Users/michaelleib/Development/AI-VSExt/OllamaAssistant.csproj",
+        "packagesPath": "/Users/michaelleib/.nuget/packages/",
+        "outputPath": "/Users/michaelleib/Development/AI-VSExt/obj/",
+        "projectStyle": "PackageReference",
+        "skipContentFileWrite": true,
+        "UsingMicrosoftNETSdk": false,
+        "configFilePaths": [
+          "/Users/michaelleib/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net472"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net472": {
+            "projectReferences": {}
+          }
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net472": {
+          "dependencies": {
+            "Microsoft.VSSDK.BuildTools": {
+              "target": "Package",
+              "version": "[17.5.4074, )"
+            },
+            "Microsoft.VisualStudio.ComponentModelHost": {
+              "target": "Package",
+              "version": "[17.0.32112.339, )"
+            },
+            "Microsoft.VisualStudio.Editor": {
+              "target": "Package",
+              "version": "[17.0.32112.339, )"
+            },
+            "Microsoft.VisualStudio.Language.Intellisense": {
+              "target": "Package",
+              "version": "[17.0.32112.339, )"
+            },
+            "Microsoft.VisualStudio.SDK": {
+              "include": "Compile, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "target": "Package",
+              "version": "[17.0.32112.339, )"
+            },
+            "Microsoft.VisualStudio.Shell.Interop": {
+              "target": "Package",
+              "version": "[17.0.32112.339, )"
+            },
+            "Microsoft.VisualStudio.Shell.Interop.15.0": {
+              "target": "Package",
+              "version": "[15.0.26202, )"
+            },
+            "Microsoft.VisualStudio.Text.UI": {
+              "target": "Package",
+              "version": "[17.0.32112.339, )"
+            },
+            "Microsoft.VisualStudio.Text.UI.Wpf": {
+              "target": "Package",
+              "version": "[17.0.32112.339, )"
+            },
+            "Microsoft.VisualStudio.Threading": {
+              "target": "Package",
+              "version": "[17.0.17, )"
+            },
+            "Microsoft.VisualStudio.Utilities": {
+              "target": "Package",
+              "version": "[17.0.32112.339, )"
+            }
+          }
+        }
+      }
+    }
+  }
+}

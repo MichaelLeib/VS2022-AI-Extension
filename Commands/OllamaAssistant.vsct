@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <Extern href="stdidcmd.h"/>
+  <Extern href="vsshlids.h"/>
+
+  <Commands package="guidOllamaAssistantPackage">
+    <Groups>
+      <Group guid="guidOllamaAssistantPackageCmdSet" id="OllamaAssistantMenuGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS"/>
+      </Group>
+    </Groups>
+
+    <Buttons>
+      <Button guid="guidOllamaAssistantPackageCmdSet" id="ToggleExtensionCommandId" priority="0x0100" type="Button">
+        <Parent guid="guidOllamaAssistantPackageCmdSet" id="OllamaAssistantMenuGroup" />
+        <Icon guid="guidImages" id="bmpPic1" />
+        <Strings>
+          <ButtonText>Toggle Ollama Assistant</ButtonText>
+        </Strings>
+      </Button>
+      
+      <Button guid="guidOllamaAssistantPackageCmdSet" id="ShowSettingsCommandId" priority="0x0110" type="Button">
+        <Parent guid="guidOllamaAssistantPackageCmdSet" id="OllamaAssistantMenuGroup" />
+        <Icon guid="guidImages" id="bmpPic2" />
+        <Strings>
+          <ButtonText>Ollama Assistant Settings</ButtonText>
+        </Strings>
+      </Button>
+      
+      <Button guid="guidOllamaAssistantPackageCmdSet" id="ManualSuggestionCommandId" priority="0x0120" type="Button">
+        <Parent guid="guidOllamaAssistantPackageCmdSet" id="OllamaAssistantMenuGroup" />
+        <Icon guid="guidImages" id="bmpPic3" />
+        <Strings>
+          <ButtonText>Get Manual Suggestion</ButtonText>
+        </Strings>
+      </Button>
+      
+      <Button guid="guidOllamaAssistantPackageCmdSet" id="ClearHistoryCommandId" priority="0x0130" type="Button">
+        <Parent guid="guidOllamaAssistantPackageCmdSet" id="OllamaAssistantMenuGroup" />
+        <Icon guid="guidImages" id="bmpPic4" />
+        <Strings>
+          <ButtonText>Clear Cursor History</ButtonText>
+        </Strings>
+      </Button>
+      
+      <Button guid="guidOllamaAssistantPackageCmdSet" id="ShowDiagnosticsCommandId" priority="0x0140" type="Button">
+        <Parent guid="guidOllamaAssistantPackageCmdSet" id="OllamaAssistantMenuGroup" />
+        <Icon guid="guidImages" id="bmpPic5" />
+        <Strings>
+          <ButtonText>Show Diagnostics</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
+
+    <Bitmaps>
+      <Bitmap guid="guidImages" href="Resources\OllamaAssistantCommand.png" usedList="bmpPic1, bmpPic2, bmpPic3, bmpPic4, bmpPic5"/>
+    </Bitmaps>
+  </Commands>
+
+  <Symbols>
+    <GuidSymbol name="guidOllamaAssistantPackage" value="{d7c3f7b1-9b4e-4f5a-8c7d-2e1f3a4b5c6d}" />
+
+    <GuidSymbol name="guidOllamaAssistantPackageCmdSet" value="{a1b2c3d4-e5f6-7890-abcd-ef1234567890}">
+      <IDSymbol name="OllamaAssistantMenuGroup" value="0x1020" />
+      <IDSymbol name="ToggleExtensionCommandId" value="0x0100" />
+      <IDSymbol name="ShowSettingsCommandId" value="0x0110" />
+      <IDSymbol name="ManualSuggestionCommandId" value="0x0120" />
+      <IDSymbol name="ClearHistoryCommandId" value="0x0130" />
+      <IDSymbol name="ShowDiagnosticsCommandId" value="0x0140" />
+    </GuidSymbol>
+
+    <GuidSymbol name="guidImages" value="{f1e2d3c4-b5a6-9786-5432-1a0b9c8d7e6f}">
+      <IDSymbol name="bmpPic1" value="1" />
+      <IDSymbol name="bmpPic2" value="2" />
+      <IDSymbol name="bmpPic3" value="3" />
+      <IDSymbol name="bmpPic4" value="4" />
+      <IDSymbol name="bmpPic5" value="5" />
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>

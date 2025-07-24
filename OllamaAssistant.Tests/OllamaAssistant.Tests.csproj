@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <AssemblyTitle>OllamaAssistant.Tests</AssemblyTitle>
+    <Product>OllamaAssistant.Tests</Product>
+    <Copyright>Copyright © 2025</Copyright>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.0.2" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.0.2" />
+    <PackageReference Include="Moq" Version="4.20.69" />
+    <PackageReference Include="FluentAssertions" Version="6.10.0" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK.TestFramework" Version="17.0.32112.339" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OllamaAssistant.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Text.Json" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop" />
+    <Reference Include="Microsoft.VisualStudio.Shell.15.0" />
+    <Reference Include="Microsoft.VisualStudio.Threading" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Performance\PerformanceTestBase.cs" />
+    <Compile Include="Performance\OllamaServicePerformanceTests.cs" />
+    <Compile Include="Performance\CursorHistoryServicePerformanceTests.cs" />
+    <Compile Include="Performance\PerformanceTestRunner.cs" />
+    <Compile Include="Services\CursorHistoryServiceTests.cs" />
+    <Compile Include="Services\SettingsServiceTests.cs" />
+    <Compile Include="Services\ContextCaptureServiceTests.cs" />
+    <Compile Include="TestUtilities\BaseTest.cs" />
+    <Compile Include="TestUtilities\TestCategories.cs" />
+    <Compile Include="TestUtilities\TestSettingsService.cs" />
+    <Compile Include="TestUtilities\MockFactory.cs" />
+    <Compile Include="TestUtilities\PerformanceTestAttribute.cs" />
+  </ItemGroup>
+
+</Project>
