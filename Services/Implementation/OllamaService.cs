@@ -727,20 +727,25 @@ namespace OllamaAssistant.Services.Implementation
         {
             var lang = language.ToLowerInvariant();
             
-            switch (lang)
+            if (lang == "csharp")
             {
-                case "csharp":
-                    return ValidateCSharpSyntax(code);
-                case "javascript":
-                case "typescript":
-                    return ValidateJavaScriptSyntax(code);
-                case "python":
-                    return ValidatePythonSyntax(code);
-                case "cpp":
-                case "c":
-                    return ValidateCppSyntax(code);
-                default:
-                    return new AIResponseValidationResult { IsValid = true }; // Skip validation for unknown languages
+                return ValidateCSharpSyntax(code);
+            }
+            else if (lang == "javascript" || lang == "typescript")
+            {
+                return ValidateJavaScriptSyntax(code);
+            }
+            else if (lang == "python")
+            {
+                return ValidatePythonSyntax(code);
+            }
+            else if (lang == "cpp" || lang == "c")
+            {
+                return ValidateCppSyntax(code);
+            }
+            else
+            {
+                return new AIResponseValidationResult { IsValid = true }; // Skip validation for unknown languages
             }
         }
 
@@ -926,19 +931,25 @@ namespace OllamaAssistant.Services.Implementation
 
         private string[] GetLanguageKeywords(string language)
         {
-            switch (language)
+            if (language == "csharp")
             {
-                case "csharp":
-                    return new[] { "class", "interface", "public", "private", "void", "string", "int", "bool", "var", "new", "return", "if", "else", "for", "while", "foreach" };
-                case "javascript":
-                    return new[] { "function", "var", "let", "const", "return", "if", "else", "for", "while", "class", "new", "this", "async", "await" };
-                case "python":
-                    return new[] { "def", "class", "return", "if", "else", "elif", "for", "while", "import", "from", "as", "with", "try", "except" };
-                case "cpp":
-                case "c":
-                    return new[] { "class", "struct", "public", "private", "void", "int", "char", "bool", "return", "if", "else", "for", "while", "include" };
-                default:
-                    return new string[0];
+                return new[] { "class", "interface", "public", "private", "void", "string", "int", "bool", "var", "new", "return", "if", "else", "for", "while", "foreach" };
+            }
+            else if (language == "javascript")
+            {
+                return new[] { "function", "var", "let", "const", "return", "if", "else", "for", "while", "class", "new", "this", "async", "await" };
+            }
+            else if (language == "python")
+            {
+                return new[] { "def", "class", "return", "if", "else", "elif", "for", "while", "import", "from", "as", "with", "try", "except" };
+            }
+            else if (language == "cpp" || language == "c")
+            {
+                return new[] { "class", "struct", "public", "private", "void", "int", "char", "bool", "return", "if", "else", "for", "while", "include" };
+            }
+            else
+            {
+                return new string[0];
             }
         }
 
@@ -952,24 +963,23 @@ namespace OllamaAssistant.Services.Implementation
 
             var correctedText = suggestion.Text;
             
-            switch (validationResult.ErrorType)
+            if (validationResult.ErrorType == ValidationErrorType.SyntaxError)
             {
-                case ValidationErrorType.SyntaxError:
-                    correctedText = AttemptSyntaxCorrection(correctedText, codeContext.Language);
-                    break;
-                    
-                case ValidationErrorType.UnsafeContent:
-                    // Remove unsafe content
-                    correctedText = RemoveUnsafeContent(correctedText);
-                    break;
-                    
-                case ValidationErrorType.IrrelevantContent:
-                    // Try to extract relevant parts
-                    correctedText = ExtractRelevantContent(correctedText, codeContext);
-                    break;
-                    
-                default:
-                    return null; // Can't correct this type of error
+                correctedText = AttemptSyntaxCorrection(correctedText, codeContext.Language);
+            }
+            else if (validationResult.ErrorType == ValidationErrorType.UnsafeContent)
+            {
+                // Remove unsafe content
+                correctedText = RemoveUnsafeContent(correctedText);
+            }
+            else if (validationResult.ErrorType == ValidationErrorType.IrrelevantContent)
+            {
+                // Try to extract relevant parts
+                correctedText = ExtractRelevantContent(correctedText, codeContext);
+            }
+            else
+            {
+                return null; // Can't correct this type of error
             }
             
             if (string.IsNullOrEmpty(correctedText) || correctedText == suggestion.Text)
@@ -1029,10 +1039,10 @@ namespace OllamaAssistant.Services.Implementation
             
             var unsafePatterns = new[]
             {
-                @"\b(password|secret|key|token)\s*=\s*[""']\w+[""']",
-                @"[""'][^""']*\.(exe|bat|cmd|sh)[""']",
-                @"\b(rm|del|delete|drop)\s+\*",
-                @"\beval\s*\("
+                @"\b(password|secret|key|token)\s*=\s*[""']\w+[""']", // Hardcoded secrets
+                @"[""'][^""']*\.(exe|bat|cmd|sh)[""']", // Executable references
+                @"\b(rm|del|delete|drop)\s+\*", // Dangerous operations
+                @"\beval\s*\(" // Code injection risks
             };
             
             foreach (var line in lines)
@@ -1114,31 +1124,33 @@ namespace OllamaAssistant.Services.Implementation
             var language = codeContext.Language?.ToLowerInvariant();
             
             // Basic language-specific fallbacks
-            switch (language)
+            if (language == "csharp")
             {
-                case "csharp":
-                    if (currentLine.EndsWith("{"))
-                        return "    // TODO: Implement\n}";
-                    if (currentLine.Contains("if (") && !currentLine.Contains(")"))
-                        return ")\n{\n    // TODO: Implement\n}";
-                    if (currentLine.EndsWith(";"))
-                        return "";
-                    return ";";
-                        
-                case "javascript":
-                    if (currentLine.EndsWith("{"))
-                        return "    // TODO: Implement\n}";
-                    if (currentLine.Contains("function") && !currentLine.Contains("{"))
-                        return " {\n    // TODO: Implement\n}";
+                if (currentLine.EndsWith("{"))
+                    return "    // TODO: Implement\n}";
+                if (currentLine.Contains("if (") && !currentLine.Contains(")"))
+                    return ")\n{\n    // TODO: Implement\n}";
+                if (currentLine.EndsWith(";"))
                     return "";
-                        
-                case "python":
-                    if (currentLine.EndsWith(":"))
-                        return "    # TODO: Implement\n    pass";
-                    return "";
-                        
-                default:
-                    return null;
+                return ";";
+            }
+            else if (language == "javascript")
+            {
+                if (currentLine.EndsWith("{"))
+                    return "    // TODO: Implement\n}";
+                if (currentLine.Contains("function") && !currentLine.Contains("{"))
+                    return " {\n    // TODO: Implement\n}";
+                return "";
+            }
+            else if (language == "python")
+            {
+                if (currentLine.EndsWith(":"))
+                    return "    # TODO: Implement\n    pass";
+                return "";
+            }
+            else
+            {
+                return null;
             }
         }
 
@@ -1581,26 +1593,27 @@ namespace OllamaAssistant.Services.Implementation
         private double GetLanguageSpecificBonus(string suggestion, string language)
         {
             var languageLower = language.ToLowerInvariant();
-            switch (languageLower)
+            if (languageLower == "csharp")
             {
-                case "csharp":
-                    if (suggestion.Contains("async ") || suggestion.Contains("await "))
-                        return 0.05;
-                    if (suggestion.Contains("?.") || suggestion.Contains("??"))
-                        return 0.03;
-                    break;
-                case "javascript":
-                    if (suggestion.Contains("=>") || suggestion.Contains("async"))
-                        return 0.05;
-                    break;
-                case "python":
-                    if (suggestion.Contains("with ") || suggestion.Contains("lambda"))
-                        return 0.05;
-                    break;
-                case "cpp":
-                    if (suggestion.Contains("::") || suggestion.Contains("auto"))
-                        return 0.05;
-                    break;
+                if (suggestion.Contains("async ") || suggestion.Contains("await "))
+                    return 0.05;
+                if (suggestion.Contains("?.") || suggestion.Contains("??"))
+                    return 0.03;
+            }
+            else if (languageLower == "javascript")
+            {
+                if (suggestion.Contains("=>") || suggestion.Contains("async"))
+                    return 0.05;
+            }
+            else if (languageLower == "python")
+            {
+                if (suggestion.Contains("with ") || suggestion.Contains("lambda"))
+                    return 0.05;
+            }
+            else if (languageLower == "cpp" || languageLower == "c")
+            {
+                if (suggestion.Contains("::") || suggestion.Contains("auto"))
+                    return 0.05;
             }
             return 0.0;
         }
@@ -1677,25 +1690,40 @@ namespace OllamaAssistant.Services.Implementation
         private bool HasProperStatementTermination(string suggestion, string language)
         {
             var trimmed = suggestion.Trim();
-            return language.ToLowerInvariant() switch
+            if (language.ToLowerInvariant() == "csharp" || language.ToLowerInvariant() == "cpp" || language.ToLowerInvariant() == "c" || language.ToLowerInvariant() == "java")
             {
-                "csharp" or "cpp" or "c" or "java" => trimmed.EndsWith(";") || trimmed.EndsWith("}") || trimmed.EndsWith("{"),
-                "python" => !trimmed.EndsWith(";"), // Python doesn't need semicolons
-                "javascript" => true, // JavaScript is flexible with semicolons
-                _ => true
-            };
+                return trimmed.EndsWith(";") || trimmed.EndsWith("}") || trimmed.EndsWith("{");
+            }
+            else if (language.ToLowerInvariant() == "python")
+            {
+                return !trimmed.EndsWith(";");
+            }
+            else if (language.ToLowerInvariant() == "javascript")
+            {
+                return true;
+            }
+            else
+            {
+                return true;
+            }
         }
 
         private bool HasValidIdentifiers(string suggestion, string language)
         {
             // Simple check for valid identifier patterns
-            var identifierPattern = language.ToLowerInvariant() switch
+            var identifierPattern = "";
+            if (language.ToLowerInvariant() == "csharp" || language.ToLowerInvariant() == "python")
             {
-                "csharp" => @"\b[a-zA-Z_][a-zA-Z0-9_]*\b",
-                "python" => @"\b[a-zA-Z_][a-zA-Z0-9_]*\b",
-                "javascript" => @"\b[a-zA-Z_$][a-zA-Z0-9_$]*\b",
-                _ => @"\b[a-zA-Z_][a-zA-Z0-9_]*\b"
-            };
+                identifierPattern = @"\b[a-zA-Z_][a-zA-Z0-9_]*\b";
+            }
+            else if (language.ToLowerInvariant() == "javascript")
+            {
+                identifierPattern = @"\b[a-zA-Z_$][a-zA-Z0-9_$]*\b";
+            }
+            else
+            {
+                identifierPattern = @"\b[a-zA-Z_][a-zA-Z0-9_]*\b";
+            }
             
             try
             {
@@ -1790,14 +1818,27 @@ namespace OllamaAssistant.Services.Implementation
 
         private bool ContainsLanguageSpecificSyntax(string suggestion, string language)
         {
-            return language.ToLowerInvariant() switch
+            var lang = language.ToLowerInvariant();
+            if (lang == "csharp")
             {
-                "csharp" => suggestion.Contains(";") || suggestion.Contains("var ") || suggestion.Contains("public "),
-                "javascript" => suggestion.Contains("function") || suggestion.Contains("=>") || suggestion.Contains("const "),
-                "python" => suggestion.Contains(":") && !suggestion.Contains(";"),
-                "cpp" or "c" => suggestion.Contains(";") || suggestion.Contains("#include") || suggestion.Contains("::"),
-                _ => true
-            };
+                return suggestion.Contains(";") || suggestion.Contains("var ") || suggestion.Contains("public ");
+            }
+            else if (lang == "javascript" || lang == "typescript")
+            {
+                return suggestion.Contains("function") || suggestion.Contains("=>") || suggestion.Contains("const ");
+            }
+            else if (lang == "python")
+            {
+                return suggestion.Contains(":") && !suggestion.Contains(";");
+            }
+            else if (lang == "cpp" || lang == "c")
+            {
+                return suggestion.Contains(";") || suggestion.Contains("#include") || suggestion.Contains("::");
+            }
+            else
+            {
+                return true;
+            }
         }
 
         private bool RespectsIndentation(string suggestion, IndentationInfo indentation)
@@ -1834,14 +1875,26 @@ namespace OllamaAssistant.Services.Implementation
         {
             var name = modelName.ToLowerInvariant();
             
-            return name switch
+            if (name.Contains("codellama"))
             {
-                var n when n.Contains("codellama") => 4096,
-                var n when n.Contains("deepseek") => 16384,
-                var n when n.Contains("starcoder") => 8192,
-                var n when n.Contains("codegeex") => 8192,
-                _ => 2048
-            };
+                return 4096;
+            }
+            else if (name.Contains("deepseek"))
+            {
+                return 16384;
+            }
+            else if (name.Contains("starcoder"))
+            {
+                return 8192;
+            }
+            else if (name.Contains("codegeex"))
+            {
+                return 8192;
+            }
+            else
+            {
+                return 2048;
+            }
         }
 
         private bool IsCodeModel(string modelName)
@@ -1856,14 +1909,34 @@ namespace OllamaAssistant.Services.Implementation
         {
             var name = modelName.ToLowerInvariant();
             
-            if (name.Contains("7b")) return "7B";
-            if (name.Contains("13b")) return "13B";
-            if (name.Contains("34b")) return "34B";
-            if (name.Contains("70b")) return "70B";
-            if (name.Contains("1b")) return "1B";
-            if (name.Contains("3b")) return "3B";
-            
-            return "unknown";
+            if (name.Contains("7b"))
+            {
+                return "7B";
+            }
+            else if (name.Contains("13b"))
+            {
+                return "13B";
+            }
+            else if (name.Contains("34b"))
+            {
+                return "34B";
+            }
+            else if (name.Contains("70b"))
+            {
+                return "70B";
+            }
+            else if (name.Contains("1b"))
+            {
+                return "1B";
+            }
+            else if (name.Contains("3b"))
+            {
+                return "3B";
+            }
+            else
+            {
+                return "unknown";
+            }
         }
 
         #endregion
