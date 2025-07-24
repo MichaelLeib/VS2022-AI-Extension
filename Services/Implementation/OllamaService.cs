@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using OllamaAssistant.Infrastructure;
 using OllamaAssistant.Models;
 using OllamaAssistant.Services.Interfaces;
+using OllamaAssistant.Services;
 
 namespace OllamaAssistant.Services.Implementation
 {
@@ -378,7 +379,7 @@ namespace OllamaAssistant.Services.Implementation
         /// <summary>
         /// Gets a streaming code suggestion from Ollama
         /// </summary>
-        public async IAsyncEnumerable<CodeSuggestion> GetStreamingCodeSuggestionAsync(
+        public async IEnumerable<CodeSuggestion> GetStreamingCodeSuggestionAsync(
             CodeContext codeContext, 
             [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
@@ -392,7 +393,7 @@ namespace OllamaAssistant.Services.Implementation
 
             var accumulatedResponse = new StringBuilder();
 
-            await foreach (var response in _httpClient.SendStreamingCompletionAsync(request, cancellationToken))
+            foreach (var response in _httpClient.SendStreamingCompletionAsync(request, cancellationToken))
             {
                 if (!string.IsNullOrEmpty(response.Response))
                 {
@@ -649,7 +650,7 @@ namespace OllamaAssistant.Services.Implementation
 
             foreach (var indicator in malformedIndicators)
             {
-                if (responseText.Contains(indicator, StringComparison.OrdinalIgnoreCase))
+                if (responseText.Contains(indicator))
                 {
                     return new AIResponseValidationResult
                     {
@@ -671,16 +672,16 @@ namespace OllamaAssistant.Services.Implementation
                 };
             }
 
-            // Check for excessive repetition (indicates model stuck in loop)
-            if (HasExcessiveRepetition(responseText))
-            {
-                return new AIResponseValidationResult
-                {
-                    IsValid = false,
-                    ErrorMessage = "AI response contains excessive repetition",
-                    ErrorType = ValidationErrorType.ExcessiveRepetition
-                };
-            }
+            //// Check for excessive repetition (indicates model stuck in loop)
+            //if (HasExcessiveRepetition(responseText))
+            //{
+            //    return new AIResponseValidationResult
+            //    {
+            //        IsValid = false,
+            //        ErrorMessage = "AI response contains excessive repetition",
+            //        ErrorType = ValidationErrorType.ExcessiveRepetition
+            //    };
+            //}
 
             return new AIResponseValidationResult { IsValid = true };
         }
@@ -755,46 +756,6 @@ namespace OllamaAssistant.Services.Implementation
             }
 
             return new AIResponseValidationResult { IsValid = true };
-        }
-
-        /// <summary>
-        /// Checks for excessive repetition in AI response
-        /// </summary>
-        private bool HasExcessiveRepetition(string text)
-        {
-            if (string.IsNullOrEmpty(text) || text.Length < 50)
-                return false;
-
-            // Check for repeated words (more than 5 times)
-            var words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            var wordCounts = new Dictionary<string, int>();
-            
-            foreach (var word in words.Where(w => w.Length > 3)) // Ignore short words
-            {
-                var cleanWord = word.Trim('.', ',', ';', ':', '!', '?').ToLowerInvariant();
-                wordCounts[cleanWord] = wordCounts.GetValueOrDefault(cleanWord, 0) + 1;
-                
-                if (wordCounts[cleanWord] > 5)
-                    return true;
-            }
-
-            // Check for repeated phrases
-            for (int length = 10; length <= Math.Min(50, text.Length / 3); length += 5)
-            {
-                var phrases = new Dictionary<string, int>();
-                for (int i = 0; i <= text.Length - length; i += 5)
-                {
-                    var phrase = text.Substring(i, Math.Min(length, text.Length - i)).Trim();
-                    if (phrase.Length >= length)
-                    {
-                        phrases[phrase] = phrases.GetValueOrDefault(phrase, 0) + 1;
-                        if (phrases[phrase] > 2)
-                            return true;
-                    }
-                }
-            }
-
-            return false;
         }
 
         /// <summary>
@@ -1308,7 +1269,7 @@ namespace OllamaAssistant.Services.Implementation
             if (codeContext.Indentation != null)
             {
                 var indentType = codeContext.Indentation.UsesSpaces ? "spaces" : "tabs";
-                var indentSize = codeContext.Indentation.Size;
+                var indentSize = codeContext.Indentation.Level;
                 promptBuilder.AppendLine($"Indentation: {indentSize} {indentType}");
             }
 
@@ -1320,7 +1281,7 @@ namespace OllamaAssistant.Services.Implementation
                 promptBuilder.AppendLine("Recent editing context:");
                 foreach (var entry in codeContext.CursorHistory.Take(2))
                 {
-                    promptBuilder.AppendLine($"- {System.IO.Path.GetFileName(entry.FilePath)}:{entry.LineNumber} ({entry.Context})");
+                    promptBuilder.AppendLine($"- {System.IO.Path.GetFileName(entry.FilePath)}:{entry.LineNumber} ({entry.ContextSnippet})");
                 }
                 promptBuilder.AppendLine();
             }
@@ -1463,7 +1424,7 @@ namespace OllamaAssistant.Services.Implementation
                 // Smaller models need more constraint
                 options.Temperature *= 0.9;
                 options.NumPredict = (int)(options.NumPredict * 0.8);
-                options.TopK = Math.Max(3, options.TopK - 2);
+                options.TopK = Math.Max(3, (byte)options.TopK - 2);
             }
             
             return new OllamaRequest
@@ -1508,7 +1469,7 @@ namespace OllamaAssistant.Services.Implementation
                 return new JumpRecommendation { Direction = JumpDirection.None };
 
             // Try to parse the structured response
-            var lines = response.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+            var lines = response.Split('\n');
             
             foreach (var line in lines)
             {
@@ -1783,7 +1744,7 @@ namespace OllamaAssistant.Services.Implementation
                 "Note:", "Please", "Here is the", "The code should"
             };
             
-            return artifacts.Any(artifact => suggestion.Contains(artifact, StringComparison.OrdinalIgnoreCase));
+            return artifacts.Any(artifact => suggestion.Contains(artifact));
         }
 
         private bool HasInconsistentIndentation(string suggestion)

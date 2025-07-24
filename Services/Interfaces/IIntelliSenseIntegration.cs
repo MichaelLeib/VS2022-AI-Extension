@@ -42,7 +42,7 @@ namespace OllamaAssistant.Services.Interfaces
         /// Shows a streaming suggestion that updates progressively
         /// </summary>
         /// <param name="suggestionStream">The stream of partial suggestions</param>
-        Task ShowStreamingSuggestionAsync(IAsyncEnumerable<CodeSuggestion> suggestionStream);
+        Task ShowStreamingSuggestionAsync(IEnumerable<CodeSuggestion> suggestionStream);
 
         /// <summary>
         /// Fired when a suggestion is accepted by the user

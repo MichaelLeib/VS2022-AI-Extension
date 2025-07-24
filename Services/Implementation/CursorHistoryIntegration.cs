@@ -40,7 +40,7 @@ namespace OllamaAssistant.Services.Implementation
             _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
             
             // Get services from locator
-            var services = ServiceLocator.Current;
+            var services = ServiceLocator.Container;
             _logger = services?.Resolve<ILogger>();
             _documentTrackingService = services?.Resolve<IVSDocumentTrackingService>();
             _outputWindowService = services?.Resolve<IVSOutputWindowService>();
@@ -251,9 +251,7 @@ namespace OllamaAssistant.Services.Implementation
                         {
                             FilePath = filePath,
                             LineNumber = line + 1, // Convert to 1-based
-                            ColumnNumber = column + 1, // Convert to 1-based
                             Timestamp = DateTime.Now,
-                            Context = "Document Activation"
                         };
 
                         _cursorHistoryService.RecordCursorPosition(entry);
@@ -356,7 +354,7 @@ namespace OllamaAssistant.Services.Implementation
                         {
                             if (entry.FilePath.StartsWith(projectDir, StringComparison.OrdinalIgnoreCase))
                             {
-                                await _cursorHistoryService.ClearHistoryForFileAsync(entry.FilePath);
+                                _cursorHistoryService.ClearFileHistory(entry.FilePath);
                                 clearedCount++;
                             }
                         }
@@ -381,7 +379,7 @@ namespace OllamaAssistant.Services.Implementation
             {
                 try
                 {
-                    await _cursorHistoryService.ClearHistoryForFileAsync(filePath);
+                    _cursorHistoryService.ClearFileHistory(filePath);
                     await _outputWindowService?.WriteInfoAsync($"Cleared cursor history for deleted file: {System.IO.Path.GetFileName(filePath)}", "CursorHistory");
                     await _logger?.LogInfoAsync($"Cleared cursor history for deleted file: {filePath}", "CursorHistoryIntegration");
                 }
@@ -405,7 +403,7 @@ namespace OllamaAssistant.Services.Implementation
                     var existingHistory = _cursorHistoryService.GetFileHistory(oldPath, 100);
                     
                     // Clear old history
-                    await _cursorHistoryService.ClearHistoryForFileAsync(oldPath);
+                    _cursorHistoryService.ClearFileHistory(oldPath);
                     
                     // Re-add history with new path
                     foreach (var entry in existingHistory)
@@ -498,7 +496,7 @@ namespace OllamaAssistant.Services.Implementation
                 // Get project path and clear related history
                 if (pHierarchy != null)
                 {
-                    if (pHierarchy.GetProperty((uint)Microsoft.VisualStudio.VSConstants.VSITEMID.VSITEMID_ROOT, 
+                    if (pHierarchy.GetProperty((uint)Microsoft.VisualStudio.VSConstants.VSITEMID.Root, 
                         (int)__VSHPROPID.VSHPROPID_ProjectDir, out object projectDir) == Microsoft.VisualStudio.VSConstants.S_OK)
                     {
                         OnProjectUnloading(projectDir as string);

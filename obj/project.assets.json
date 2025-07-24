@@ -6011,26 +6011,33 @@
     ]
   },
   "packageFolders": {
-    "/Users/michaelleib/.nuget/packages/": {}
+    "C:\\Users\\MicLeib\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/michaelleib/Development/AI-VSExt/OllamaAssistant.csproj",
+      "projectUniqueName": "U:\\VS2022-AI-Extension\\OllamaAssistant.csproj",
       "projectName": "OllamaAssistant",
-      "projectPath": "/Users/michaelleib/Development/AI-VSExt/OllamaAssistant.csproj",
-      "packagesPath": "/Users/michaelleib/.nuget/packages/",
-      "outputPath": "/Users/michaelleib/Development/AI-VSExt/obj/",
+      "projectPath": "U:\\VS2022-AI-Extension\\OllamaAssistant.csproj",
+      "packagesPath": "C:\\Users\\MicLeib\\.nuget\\packages\\",
+      "outputPath": "U:\\VS2022-AI-Extension\\obj\\",
       "projectStyle": "PackageReference",
       "skipContentFileWrite": true,
       "UsingMicrosoftNETSdk": false,
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
-        "/Users/michaelleib/.nuget/NuGet/NuGet.Config"
+        "C:\\Users\\MicLeib\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "net472"
       ],
       "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -6161,7 +6168,7 @@
       "code": "NU1605",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "Detected package downgrade: Microsoft.VisualStudio.Threading from 17.1.46 to 17.0.63. Reference the package directly from the project to select a different version. \n OllamaAssistant -> Microsoft.VisualStudio.Editor 17.1.386 -> Microsoft.VisualStudio.Threading (>= 17.1.46) \n OllamaAssistant -> Microsoft.VisualStudio.Threading (>= 17.0.17)",
+      "message": "Detected package downgrade: Microsoft.VisualStudio.Threading from 17.1.46 to 17.0.63. Reference the package directly from the project to select a different version. \r\n OllamaAssistant -> Microsoft.VisualStudio.Editor 17.1.386 -> Microsoft.VisualStudio.Threading (>= 17.1.46) \r\n OllamaAssistant -> Microsoft.VisualStudio.Threading (>= 17.0.17)",
       "libraryId": "Microsoft.VisualStudio.Threading",
       "targetGraphs": [
         ".NETFramework,Version=v4.7.2"
@@ -6171,7 +6178,7 @@
       "code": "NU1605",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "Detected package downgrade: Microsoft.VisualStudio.Utilities from 17.1.32107.28 to 17.0.32112.339. Reference the package directly from the project to select a different version. \n OllamaAssistant -> Microsoft.VisualStudio.SDK 17.0.32112.339 -> Microsoft.VisualStudio.Imaging 17.1.32107.28 -> Microsoft.VisualStudio.Utilities (>= 17.1.32107.28) \n OllamaAssistant -> Microsoft.VisualStudio.Utilities (>= 17.0.32112.339)",
+      "message": "Detected package downgrade: Microsoft.VisualStudio.Utilities from 17.1.32107.28 to 17.0.32112.339. Reference the package directly from the project to select a different version. \r\n OllamaAssistant -> Microsoft.VisualStudio.SDK 17.0.32112.339 -> Microsoft.VisualStudio.Imaging 17.1.32107.28 -> Microsoft.VisualStudio.Utilities (>= 17.1.32107.28) \r\n OllamaAssistant -> Microsoft.VisualStudio.Utilities (>= 17.0.32112.339)",
       "libraryId": "Microsoft.VisualStudio.Utilities",
       "targetGraphs": [
         ".NETFramework,Version=v4.7.2"

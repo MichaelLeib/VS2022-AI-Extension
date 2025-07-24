@@ -11,7 +11,7 @@ namespace OllamaAssistant.Services.Implementation
     /// <summary>
     /// Implementation of the settings service using Visual Studio settings store
     /// </summary>
-    public class SettingsService : ISettingsService
+    public class SettingsService : Interfaces.ISettingsService
     {
         private const string CollectionPath = "OllamaAssistant";
         private readonly WritableSettingsStore _settingsStore;
@@ -23,7 +23,7 @@ namespace OllamaAssistant.Services.Implementation
         private const int DefaultSurroundingLinesUp = 3;
         private const int DefaultSurroundingLinesDown = 2;
         private const int DefaultCursorHistoryDepth = 3;
-        private const int DefaultOllamaTimeout = 30000;
+        private const int DefaultOllamaTimeout = 120000;
         private const double DefaultMinimumConfidence = 0.7;
         private const int DefaultTypingDebounce = 500;
         private const int DefaultMaxSuggestions = 5;

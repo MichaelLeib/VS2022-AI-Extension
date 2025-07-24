@@ -34,7 +34,7 @@ namespace OllamaAssistant.Services.Implementation
             if (suggestions == null || suggestions.Length == 0)
                 return Array.Empty<CodeSuggestion>();
 
-            criteria ??= CreateDefaultFilterCriteria();
+            criteria = CreateDefaultFilterCriteria();
 
             var filtered = suggestions.AsEnumerable();
 

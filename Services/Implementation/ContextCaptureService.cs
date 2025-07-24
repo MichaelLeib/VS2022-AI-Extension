@@ -308,17 +308,17 @@ namespace OllamaAssistant.Services.Implementation
             if (IsIncompleteControlStructure(currentLineText))
             {
                 var targetLine = FindNextLogicalPosition(snapshot, currentLine);
-                if (targetLine.HasValue)
+                if (targetLine.Length > 0)
                 {
                     recommendations.Add(new JumpRecommendation
                     {
-                        TargetLine = targetLine.Value.LineNumber + 1,
-                        TargetColumn = GetIndentationLevel(targetLine.Value.GetText()) + 4,
+                        TargetLine = targetLine.LineNumber + 1,
+                        TargetColumn = GetIndentationLevel(targetLine.GetText()) + 4,
                         Direction = JumpDirection.Down,
                         Reason = "Jump to body of control structure",
                         Confidence = 0.9,
                         Type = JumpType.NextLogicalPosition,
-                        TargetPreview = targetLine.Value.GetText().Trim()
+                        TargetPreview = targetLine.GetText().Trim()
                     });
                 }
             }
@@ -368,17 +368,17 @@ namespace OllamaAssistant.Services.Implementation
             if (HasSyntaxError(currentLineText))
             {
                 var fixLine = FindErrorFixLocation(snapshot, currentLine);
-                if (fixLine.HasValue)
+                if (fixLine.Length > 0)
                 {
                     recommendations.Add(new JumpRecommendation
                     {
-                        TargetLine = fixLine.Value.LineNumber + 1,
-                        TargetColumn = fixLine.Value.GetText().Length,
-                        Direction = fixLine.Value.LineNumber > currentLine.LineNumber ? JumpDirection.Down : JumpDirection.Up,
+                        TargetLine = fixLine.LineNumber + 1,
+                        TargetColumn = fixLine.GetText().Length,
+                        Direction = fixLine.LineNumber > currentLine.LineNumber ? JumpDirection.Down : JumpDirection.Up,
                         Reason = "Jump to fix syntax error",
                         Confidence = 0.7,
                         Type = JumpType.ErrorLocation,
-                        TargetPreview = fixLine.Value.GetText().Trim()
+                        TargetPreview = fixLine.GetText().Trim()
                     });
                 }
             }
@@ -437,17 +437,29 @@ namespace OllamaAssistant.Services.Implementation
                 return "text";
 
             var extension = Path.GetExtension(filePath).ToLowerInvariant();
-            return extension switch
+            switch (extension)
             {
-                ".cs" => "csharp",
-                ".cpp" or ".cc" or ".cxx" => "cpp",
-                ".c" => "c",
-                ".h" or ".hpp" => "c_header",
-                ".js" => "javascript",
-                ".ts" => "typescript",
-                ".py" => "python",
-                ".java" => "java",
-                _ => "text"
+                case ".cs":
+                    return "csharp";
+                case ".cpp":
+                case ".cc":
+                case ".cxx":
+                   return "cpp";
+                case ".c":
+                   return "c";
+                case ".h":
+                case ".hpp":
+                    return "c_header";
+                case ".js":
+                    return "javascript";
+                case ".ts":
+                    return "typescript";
+                case ".py":
+                    return "python";
+                case ".java":
+                    return "java";
+                default:
+                    return "text";
             };
         }
 
@@ -455,14 +467,23 @@ namespace OllamaAssistant.Services.Implementation
         {
             lineText = lineText.Trim();
             
-            return language switch
+            switch (language)
             {
-                "csharp" => DetectCSharpScope(lineText),
-                "cpp" or "c" => DetectCppScope(lineText),
-                "javascript" or "typescript" => DetectJavaScriptScope(lineText),
-                "python" => DetectPythonScope(lineText),
-                "java" => DetectJavaScope(lineText),
-                _ => null
+                case "csharp":
+                    return DetectCSharpScope(lineText);
+                case "cpp":
+                case "c":
+                    return DetectCppScope(lineText);
+                   break;
+                case "javascript":
+                case "typescript":
+                   return DetectJavaScriptScope(lineText);
+                case "python":
+                    return DetectPythonScope(lineText);
+                case "java":
+                    return DetectJavaScope(lineText);
+                default:
+                    return null;
             };
         }
 
@@ -569,13 +590,20 @@ namespace OllamaAssistant.Services.Implementation
             if (position >= lineText.Length)
                 return false;
 
-            return language switch
+            switch (language)
             {
-                "csharp" or "cpp" or "c" or "java" or "javascript" or "typescript" => 
-                    IsInCStyleComment(lineText, position),
-                "python" => IsInPythonComment(lineText, position),
-                _ => false
-            };
+                case "csharp":
+                case "cpp":
+                case "c":
+                case "java":
+                case "javascript":
+                case "typescript":
+                    return IsInCStyleComment(lineText, position);
+                case "python":
+                    return IsInPythonComment(lineText, position);
+                default:
+                    return false;
+            }
         }
 
         private bool IsInCStyleComment(string lineText, int position)
@@ -682,7 +710,7 @@ namespace OllamaAssistant.Services.Implementation
             return Regex.IsMatch(trimmed, @"^\s*(if\s*\(.*\)|for\s*\(.*\)|while\s*\(.*\)|foreach\s*\(.*\))\s*$");
         }
 
-        private ITextSnapshotLine? FindNextLogicalPosition(ITextSnapshot snapshot, ITextSnapshotLine currentLine)
+        private ITextSnapshotLine FindNextLogicalPosition(ITextSnapshot snapshot, ITextSnapshotLine currentLine)
         {
             if (currentLine.LineNumber + 1 < snapshot.LineCount)
             {
@@ -693,15 +721,23 @@ namespace OllamaAssistant.Services.Implementation
 
         private bool IsMethodSignature(string lineText, string language)
         {
-            return language switch
-            {
-                "csharp" => Regex.IsMatch(lineText, @"^\s*(public|private|protected|internal)?\s*(static\s+)?(async\s+)?\w+\s+\w+\s*\([^)]*\)\s*$"),
-                "java" => Regex.IsMatch(lineText, @"^\s*(public|private|protected)?\s*(static\s+)?\w+\s+\w+\s*\([^)]*\)\s*$"),
-                "cpp" or "c" => Regex.IsMatch(lineText, @"^\s*\w+\s+\w+\s*\([^)]*\)\s*$"),
-                "javascript" or "typescript" => Regex.IsMatch(lineText, @"^\s*(function\s+\w+|(\w+)\s*:\s*function|\w+\s*=\s*function)\s*\([^)]*\)\s*$"),
-                "python" => Regex.IsMatch(lineText, @"^\s*def\s+\w+\s*\([^)]*\):\s*$"),
-                _ => false
-            };
+        switch (language)
+        {
+            case "csharp":
+                return Regex.IsMatch(lineText, @"^\s*(public|private|protected|internal)?\s*(static\s+)?(async\s+)?\w+\s+\w+\s*\([^)]*\)\s*$");
+            case "java":
+                return Regex.IsMatch(lineText, @"^\s*(public|private|protected)?\s*(static\s+)?\w+\s+\w+\s*\([^)]*\)\s*$");
+            case "cpp":
+            case "c":
+                return Regex.IsMatch(lineText, @"^\s*\w+\s+\w+\s*\([^)]*\)\s*$");
+            case "javascript":
+            case "typescript":
+                return Regex.IsMatch(lineText, @"^\s*(function\s+\w+|(\w+)\s*:\s*function|\w+\s*=\s*function)\s*\([^)]*\)\s*$");
+            case "python":
+                return Regex.IsMatch(lineText, @"^\s*def\s+\w+\s*\([^)]*\):\s*$");
+            default:
+                return false;
+        }
         }
 
         private int GetIndentationLevel(string line)
@@ -728,7 +764,7 @@ namespace OllamaAssistant.Services.Implementation
             return openBrackets != closeBrackets;
         }
 
-        private ITextSnapshotLine? FindErrorFixLocation(ITextSnapshot snapshot, ITextSnapshotLine currentLine)
+        private ITextSnapshotLine FindErrorFixLocation(ITextSnapshot snapshot, ITextSnapshotLine currentLine)
         {
             // Look for the most likely place to fix the error
             // This is a simplified implementation

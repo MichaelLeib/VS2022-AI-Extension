@@ -500,9 +500,6 @@ namespace OllamaAssistant.Services.Implementation
                 case HttpStatusCode.ServiceUnavailable:
                 case HttpStatusCode.GatewayTimeout:
                 case HttpStatusCode.RequestTimeout:
-                case HttpStatusCode.TooManyRequests:
-                case HttpStatusCode.InsufficientStorage:
-                case HttpStatusCode.NotExtended:
                     return true;
                 default:
                     return false;
@@ -551,7 +548,7 @@ namespace OllamaAssistant.Services.Implementation
         {
             // For streaming responses, we get multiple JSON objects separated by newlines
             // We need to combine them into a single response
-            var lines = content.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+            var lines = content.Split('\n');
             var responses = new List<OllamaStreamResponse>();
 
             foreach (var line in lines)
